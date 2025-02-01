@@ -1,0 +1,103 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { 
+  Network, Shield, Activity, Award, 
+  CheckCircle, AlertTriangle, Clock 
+} from 'lucide-react';
+
+const NetworkManager = () => {
+  const [networkStats, setNetworkStats] = useState({
+    activeNodes: 32,
+    averageReputation: 87,
+    totalStake: 156000,
+    pendingVerifications: 12,
+    completedVerifications: 1458,
+    averageVerificationTime: 45
+  });
+
+  const [recentVerifications, setRecentVerifications] = useState([
+    {
+      id: 'ver-001',
+      submissionId: 'sub-789',
+      status: 'completed',
+      qualityScore: 92,
+      nodesParticipated: 5,
+      timeElapsed: '2m ago'
+    },
+    {
+      id: 'ver-002',
+      submissionId: 'sub-790',
+      status: 'in_progress',
+      nodesParticipated: 3,
+      timeElapsed: '1m ago'
+    }
+  ]);
+
+  const NetworkMetrics = () => (
+    <div className="grid grid-cols-3 gap-4 mb-6">
+      <Card className="bg-white">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <Network className="w-8 h-8 text-blue-500" />
+            <div>
+              <p className="text-sm text-gray-600">Active Nodes</p>
+              <p className="text-2xl font-bold">{networkStats.activeNodes}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-white">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <Shield className="w-8 h-8 text-green-500" />
+            <div>
+              <p className="text-sm text-gray-600">Avg. Reputation</p>
+              <p className="text-2xl font-bold">{networkStats.averageReputation}%</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-white">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <Award className="w-8 h-8 text-purple-500" />
+            <div>
+              <p className="text-sm text-gray-600">Total Stake</p>
+              <p className="text-2xl font-bold">{networkStats.totalStake.toLocaleString()}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const VerificationStatus = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Verification Status</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-1">
+              <Clock className="w-5 h-5 text-blue-500" />
+              <span className="font-semibold">Pending</span>
+            </div>
+            <p className="text-2xl font-bold">{networkStats.pendingVerifications}</p>
+          </div>
+          
+          <div className="p-4 bg-green-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-1">
+              <CheckCircle className="w-5 h-5 text-green-500" />
+              <span className="font-semibold">Completed</span>
+            </div>
+            <p className="text-2xl font-bold">{networkStats.completedVerifications}</p>
+          </div>
+          
+          <div className="p-4 bg-purple-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-1">
+              <Activity className="w-5 h-5 text-purple-500" />
+              <span className="font-semibold">Avg.
