@@ -1,0 +1,121 @@
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { 
+  Database, Lock, Search, Users, 
+  HardDrive, Shield, Clock, AlertTriangle 
+} from 'lucide-react';
+
+const StorageManager = () => {
+  const [storageMetrics, setStorageMetrics] = useState({
+    totalData: '2.4 TB',
+    activeNodes: 48,
+    replicationFactor: 3,
+    availabilityScore: 99.99,
+    encryptedData: '2.4 TB',
+    accessRequests: 156
+  });
+
+  const [recentAccess, setRecentAccess] = useState([
+    {
+      id: 'access-1',
+      user: 'Research Lab A',
+      dataType: 'Health Metrics',
+      action: 'read',
+      timestamp: Date.now() - 300000
+    },
+    {
+      id: 'access-2',
+      user: 'AI Corp B',
+      dataType: 'Financial Data',
+      action: 'write',
+      timestamp: Date.now() - 900000
+    }
+  ]);
+
+  const StorageOverview = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Storage Overview</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <HardDrive className="w-5 h-5 text-blue-500" />
+              <span className="font-semibold">Total Storage</span>
+            </div>
+            <p className="text-2xl font-bold">{storageMetrics.totalData}</p>
+          </div>
+
+          <div className="p-4 bg-green-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Database className="w-5 h-5 text-green-500" />
+              <span className="font-semibold">Active Nodes</span>
+            </div>
+            <p className="text-2xl font-bold">{storageMetrics.activeNodes}</p>
+          </div>
+
+          <div className="p-4 bg-purple-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-5 h-5 text-purple-500" />
+              <span className="font-semibold">Availability</span>
+            </div>
+            <p className="text-2xl font-bold">{storageMetrics.availabilityScore}%</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const AccessControl = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Access Control</CardTitle>
+          <Button variant="outline" className="flex items-center gap-2">
+            <Lock className="w-4 h-4" />
+            Manage Permissions
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {recentAccess.map(access => (
+            <div key={access.id} className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <Users className="w-5 h-5 text-gray-500" />
+                <div>
+                  <p className="font-medium">{access.user}</p>
+                  <p className="text-sm text-gray-500">{access.dataType}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className={`px-2 py-1 rounded-full text-sm ${
+                  access.action === 'read' 
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-green-100 text-green-800'
+                }`}>
+                  {access.action}
+                </span>
+                <Clock className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-500">
+                  {new Date(access.timestamp).toLocaleTimeString()}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const DataSearch = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Data Search</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-4 mb-6">
+          <div className="flex-1 relative">
+            <Search className="w-5 h-5 absolute left-3
