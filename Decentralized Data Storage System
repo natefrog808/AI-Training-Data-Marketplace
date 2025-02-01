@@ -1,0 +1,311 @@
+// Decentralized Storage System
+class DecentralizedStorage {
+  constructor() {
+    this.storageManager = new StorageManager();
+    this.permissionController = new PermissionController();
+    this.encryptionService = new EncryptionService();
+    this.dataIndexer = new DataIndexer();
+  }
+
+  class StorageManager {
+    constructor() {
+      this.chunks = new Map();
+      this.metadata = new Map();
+      this.replicationFactor = 3;
+    }
+
+    async storeData(data, options = {}) {
+      // Generate unique identifier for the data
+      const dataId = await this.generateDataId(data);
+      
+      // Split data into chunks
+      const chunks = await this.splitIntoChunks(data);
+      
+      // Encrypt chunks
+      const encryptedChunks = await Promise.all(
+        chunks.map(chunk => this.encryptionService.encrypt(chunk))
+      );
+      
+      // Store chunks with replication
+      await this.storeChunks(dataId, encryptedChunks);
+      
+      // Store metadata
+      await this.storeMetadata(dataId, {
+        chunks: chunks.length,
+        size: data.length,
+        created: Date.now(),
+        type: options.type || 'general',
+        owner: options.owner,
+        permissions: options.permissions || []
+      });
+
+      return dataId;
+    }
+
+    async retrieveData(dataId, requestor) {
+      // Check permissions
+      if (!await this.permissionController.checkAccess(dataId, requestor)) {
+        throw new Error('Access denied');
+      }
+
+      // Get metadata
+      const metadata = await this.getMetadata(dataId);
+      
+      // Retrieve chunks
+      const encryptedChunks = await this.retrieveChunks(dataId, metadata.chunks);
+      
+      // Decrypt chunks
+      const chunks = await Promise.all(
+        encryptedChunks.map(chunk => this.encryptionService.decrypt(chunk))
+      );
+      
+      // Reassemble data
+      return this.assembleChunks(chunks);
+    }
+
+    async storeChunks(dataId, chunks) {
+      for (let i = 0; i < chunks.length; i++) {
+        const chunkId = `${dataId}-${i}`;
+        
+        // Store with replication
+        for (let r = 0; r < this.replicationFactor; r++) {
+          const nodeId = this.selectStorageNode(chunkId, r);
+          await this.storeChunkOnNode(nodeId, chunkId, chunks[i]);
+        }
+      }
+    }
+
+    async retrieveChunks(dataId, numChunks) {
+      const chunks = [];
+      for (let i = 0; i < numChunks; i++) {
+        const chunkId = `${dataId}-${i}`;
+        const chunk = await this.retrieveChunkFromAnyNode(chunkId);
+        chunks.push(chunk);
+      }
+      return chunks;
+    }
+
+    selectStorageNode(chunkId, replicaNumber) {
+      // Consistent hashing to select storage node
+      const hash = this.hashFunction(`${chunkId}-${replicaNumber}`);
+      return this.nodeRing.getNode(hash);
+    }
+  }
+
+  class PermissionController {
+    constructor() {
+      this.permissions = new Map();
+      this.accessLogs = new Map();
+    }
+
+    async grantAccess(dataId, grantee, permissions) {
+      const currentPermissions = this.permissions.get(dataId) || new Map();
+      currentPermissions.set(grantee, {
+        ...permissions,
+        grantedAt: Date.now(),
+        expiresAt: permissions.expiresAt || null
+      });
+      
+      this.permissions.set(dataId, currentPermissions);
+      await this.logAccessChange(dataId, 'grant', grantee, permissions);
+    }
+
+    async revokeAccess(dataId, grantee) {
+      const currentPermissions = this.permissions.get(dataId);
+      if (currentPermissions) {
+        currentPermissions.delete(grantee);
+        await this.logAccessChange(dataId, 'revoke', grantee);
+      }
+    }
+
+    async checkAccess(dataId, requestor) {
+      const currentPermissions = this.permissions.get(dataId);
+      if (!currentPermissions) return false;
+
+      const permission = currentPermissions.get(requestor);
+      if (!permission) return false;
+
+      if (permission.expiresAt && permission.expiresAt < Date.now()) {
+        currentPermissions.delete(requestor);
+        return false;
+      }
+
+      await this.logAccess(dataId, requestor, 'read');
+      return true;
+    }
+
+    async logAccess(dataId, user, action) {
+      const log = this.accessLogs.get(dataId) || [];
+      log.push({
+        user,
+        action,
+        timestamp: Date.now()
+      });
+      this.accessLogs.set(dataId, log);
+    }
+  }
+
+  class EncryptionService {
+    constructor() {
+      this.keyManager = new KeyManager();
+    }
+
+    async encrypt(data) {
+      const key = await this.keyManager.getEncryptionKey();
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      
+      const encryptedData = await crypto.subtle.encrypt(
+        {
+          name: 'AES-GCM',
+          iv: iv
+        },
+        key,
+        data
+      );
+
+      return {
+        data: encryptedData,
+        iv: iv
+      };
+    }
+
+    async decrypt(encryptedPackage) {
+      const key = await this.keyManager.getEncryptionKey();
+      
+      const decryptedData = await crypto.subtle.decrypt(
+        {
+          name: 'AES-GCM',
+          iv: encryptedPackage.iv
+        },
+        key,
+        encryptedPackage.data
+      );
+
+      return decryptedData;
+    }
+  }
+
+  class DataIndexer {
+    constructor() {
+      this.index = new Map();
+      this.searchEngine = new SearchEngine();
+    }
+
+    async indexData(dataId, metadata) {
+      // Extract searchable fields
+      const searchableContent = await this.extractSearchableContent(metadata);
+      
+      // Update search index
+      await this.searchEngine.index(dataId, searchableContent);
+      
+      // Store in local index
+      this.index.set(dataId, {
+        ...metadata,
+        indexed: Date.now()
+      });
+    }
+
+    async search(query, options = {}) {
+      const results = await this.searchEngine.search(query, options);
+      
+      // Enrich results with metadata
+      return Promise.all(
+        results.map(async result => ({
+          ...result,
+          metadata: await this.getMetadata(result.dataId)
+        }))
+      );
+    }
+
+    async updateIndex(dataId, updates) {
+      const currentIndex = this.index.get(dataId);
+      if (!currentIndex) return;
+
+      const updatedIndex = {
+        ...currentIndex,
+        ...updates,
+        lastUpdated: Date.now()
+      };
+
+      this.index.set(dataId, updatedIndex);
+      await this.searchEngine.update(dataId, updates);
+    }
+  }
+
+  // Search Engine Implementation
+  class SearchEngine {
+    constructor() {
+      this.documents = new Map();
+      this.invertedIndex = new Map();
+    }
+
+    async index(dataId, content) {
+      // Store document
+      this.documents.set(dataId, content);
+      
+      // Update inverted index
+      const terms = this.tokenize(content);
+      for (const term of terms) {
+        if (!this.invertedIndex.has(term)) {
+          this.invertedIndex.set(term, new Set());
+        }
+        this.invertedIndex.get(term).add(dataId);
+      }
+    }
+
+    async search(query, options = {}) {
+      const queryTerms = this.tokenize(query);
+      const results = new Map();
+
+      // Find matching documents
+      for (const term of queryTerms) {
+        const matchingDocs = this.invertedIndex.get(term) || new Set();
+        for (const docId of matchingDocs) {
+          results.set(docId, (results.get(docId) || 0) + 1);
+        }
+      }
+
+      // Sort by relevance
+      return Array.from(results.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([dataId, score]) => ({
+          dataId,
+          score,
+          content: this.documents.get(dataId)
+        }));
+    }
+
+    tokenize(text) {
+      return text.toLowerCase()
+        .split(/\W+/)
+        .filter(term => term.length > 0);
+    }
+  }
+
+  // Main interface methods
+  async storeData(data, options) {
+    const dataId = await this.storageManager.storeData(data, options);
+    await this.dataIndexer.indexData(dataId, {
+      ...options,
+      dataId
+    });
+    return dataId;
+  }
+
+  async retrieveData(dataId, requestor) {
+    return this.storageManager.retrieveData(dataId, requestor);
+  }
+
+  async updatePermissions(dataId, grantee, permissions) {
+    await this.permissionController.grantAccess(dataId, grantee, permissions);
+    await this.dataIndexer.updateIndex(dataId, {
+      permissions: await this.permissionController.getPermissions(dataId)
+    });
+  }
+
+  async search(query, options) {
+    return this.dataIndexer.search(query, options);
+  }
+}
+
+export default DecentralizedStorage;
