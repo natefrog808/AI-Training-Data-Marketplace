@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   Award, Star, Trophy, Sparkles, Target,
-  TrendingUp, Badge, Gift, Activity
+  TrendingUp, Badge, Gift, Activity 
 } from 'lucide-react';
 
 const RewardsInterface = () => {
@@ -96,4 +96,79 @@ const RewardsInterface = () => {
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="p-4 bg-green-50 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
-              <Award className="w-5 h-5 text-green-
+              <Award className="w-5 h-5 text-green-500" />
+              <span className="font-semibold">Total Earned</span>
+            </div>
+            <p className="text-2xl font-bold">{userProfile.rewards.totalEarned}</p>
+          </div>
+
+          <div className="p-4 bg-yellow-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-5 h-5 text-yellow-500" />
+              <span className="font-semibold">Multiplier</span>
+            </div>
+            <p className="text-2xl font-bold">{userProfile.rewards.multiplier}x</p>
+          </div>
+
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-5 h-5 text-blue-500" />
+              <span className="font-semibold">Pending</span>
+            </div>
+            <p className="text-2xl font-bold">{userProfile.rewards.pending}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const AchievementsCard = () => (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Achievements</CardTitle>
+          <div className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-purple-500" />
+            <span>{userProfile.achievements.length} Earned</span>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {userProfile.achievements.map(achievement => (
+            <div 
+              key={achievement.id}
+              className="p-4 border rounded-lg flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-6 h-6 text-yellow-500" />
+                <div>
+                  <p className="font-medium">{achievement.title}</p>
+                  <p className="text-sm text-gray-600">{achievement.description}</p>
+                </div>
+              </div>
+              <span className="text-sm text-gray-500">
+                {new Date(achievement.earned).toLocaleDateString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Rewards & Reputation</h1>
+        <p className="text-gray-600">Track your contributions and earnings</p>
+      </div>
+
+      <ReputationCard />
+      <RewardsCard />
+      <AchievementsCard />
+    </div>
+  );
+};
+
+export default RewardsInterface;
