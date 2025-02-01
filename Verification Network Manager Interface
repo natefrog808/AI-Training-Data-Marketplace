@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   Network, Shield, Activity, Award, 
-  CheckCircle, AlertTriangle, Clock 
+  CheckCircle, AlertTriangle, Clock,
+  ArrowUpRight, ArrowDownRight 
 } from 'lucide-react';
 
 const NetworkManager = () => {
@@ -36,7 +37,7 @@ const NetworkManager = () => {
 
   const NetworkMetrics = () => (
     <div className="grid grid-cols-3 gap-4 mb-6">
-      <Card className="bg-white">
+      <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
             <Network className="w-8 h-8 text-blue-500" />
@@ -48,7 +49,7 @@ const NetworkManager = () => {
         </CardContent>
       </Card>
 
-      <Card className="bg-white">
+      <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
             <Shield className="w-8 h-8 text-green-500" />
@@ -60,7 +61,7 @@ const NetworkManager = () => {
         </CardContent>
       </Card>
 
-      <Card className="bg-white">
+      <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
             <Award className="w-8 h-8 text-purple-500" />
@@ -100,4 +101,136 @@ const NetworkManager = () => {
           <div className="p-4 bg-purple-50 rounded-lg">
             <div className="flex items-center gap-2 mb-1">
               <Activity className="w-5 h-5 text-purple-500" />
-              <span className="font-semibold">Avg.
+              <span className="font-semibold">Avg. Time</span>
+            </div>
+            <p className="text-2xl font-bold">{networkStats.averageVerificationTime}s</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const RecentActivity = () => (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Recent Verifications</CardTitle>
+          <Button variant="outline" size="sm">View All</Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {recentVerifications.map(verification => (
+            <div 
+              key={verification.id} 
+              className="p-4 border rounded-lg"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  {verification.status === 'completed' ? (
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  ) : (
+                    <Clock className="w-5 h-5 text-blue-500" />
+                  )}
+                  <div>
+                    <p className="font-medium">Submission {verification.submissionId}</p>
+                    <p className="text-sm text-gray-500">
+                      {verification.nodesParticipated} nodes participated
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end">
+                  {verification.status === 'completed' && (
+                    <span className="text-lg font-semibold">
+                      {verification.qualityScore}%
+                    </span>
+                  )}
+                  <span className="text-sm text-gray-500">
+                    {verification.timeElapsed}
+                  </span>
+                </div>
+              </div>
+              {verification.status === 'in_progress' && (
+                <div className="w-full h-2 bg-gray-100 rounded-full mt-2">
+                  <div 
+                    className="h-full bg-blue-500 rounded-full"
+                    style={{ width: `${(verification.nodesParticipated / 5) * 100}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const NetworkPerformance = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Network Performance</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div>
+              <p className="font-medium">Consensus Rate</p>
+              <p className="text-sm text-gray-500">Time to reach consensus</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <ArrowDownRight className="w-4 h-4 text-green-500" />
+              <span className="text-green-500">-12%</span>
+              <span className="text-2xl font-bold">3.2s</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div>
+              <p className="font-medium">Node Distribution</p>
+              <p className="text-sm text-gray-500">Geographic spread</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <ArrowUpRight className="w-4 h-4 text-blue-500" />
+              <span className="text-blue-500">+8%</span>
+              <span className="text-2xl font-bold">12</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div>
+              <p className="font-medium">Verification Accuracy</p>
+              <p className="text-sm text-gray-500">Correct validations</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <ArrowUpRight className="w-4 h-4 text-green-500" />
+              <span className="text-green-500">+2%</span>
+              <span className="text-2xl font-bold">99.2%</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Network Management</h1>
+        <p className="text-gray-600">Monitor and manage verification network</p>
+      </div>
+
+      <NetworkMetrics />
+      <div className="grid grid-cols-2 gap-6">
+        <div>
+          <VerificationStatus />
+          <NetworkPerformance />
+        </div>
+        <div>
+          <RecentActivity />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default NetworkManager;
