@@ -1,0 +1,235 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+// DataToken for marketplace transactions
+contract DataToken is ERC20, Ownable {
+    constructor() ERC20("DataToken", "DTK") {
+        _mint(msg.sender, 1000000 * 10**decimals());
+    }
+
+    function mint(address to, uint256 amount) public onlyOwner {
+        _mint(to, amount);
+    }
+}
+
+// Main marketplace contract
+contract DataMarketplace is ReentrancyGuard {
+    DataToken public dataToken;
+    
+    struct Campaign {
+        address creator;
+        string dataType;
+        uint256 rewardPerSubmission;
+        uint256 totalBudget;
+        uint256 remainingBudget;
+        uint256 minQualityScore;
+        bool active;
+        mapping(address => bool) verifiers;
+        mapping(bytes32 => Submission) submissions;
+    }
+    
+    struct Submission {
+        address contributor;
+        bytes32 dataHash;
+        uint256 qualityScore;
+        bool verified;
+        bool rewarded;
+        uint256 timestamp;
+    }
+    
+    struct Verifier {
+        uint256 reputation;
+        uint256 totalVerifications;
+        bool active;
+    }
+    
+    mapping(uint256 => Campaign) public campaigns;
+    mapping(address => Verifier) public verifiers;
+    mapping(address => uint256) public contributorScores;
+    
+    uint256 public campaignCount;
+    uint256 public minStake = 1000 * 10**18; // 1000 tokens
+    
+    event CampaignCreated(uint256 indexed campaignId, address creator, string dataType);
+    event DataSubmitted(uint256 indexed campaignId, address contributor, bytes32 dataHash);
+    event SubmissionVerified(uint256 indexed campaignId, bytes32 dataHash, uint256 qualityScore);
+    event RewardDistributed(address contributor, uint256 amount);
+    
+    constructor(address _dataToken) {
+        dataToken = DataToken(_dataToken);
+    }
+    
+    // Campaign Management
+    function createCampaign(
+        string memory _dataType,
+        uint256 _rewardPerSubmission,
+        uint256 _totalBudget,
+        uint256 _minQualityScore
+    ) external nonReentrant {
+        require(_totalBudget >= _rewardPerSubmission, "Invalid budget");
+        require(dataToken.transferFrom(msg.sender, address(this), _totalBudget), "Transfer failed");
+        
+        campaignCount++;
+        Campaign storage campaign = campaigns[campaignCount];
+        campaign.creator = msg.sender;
+        campaign.dataType = _dataType;
+        campaign.rewardPerSubmission = _rewardPerSubmission;
+        campaign.totalBudget = _totalBudget;
+        campaign.remainingBudget = _totalBudget;
+        campaign.minQualityScore = _minQualityScore;
+        campaign.active = true;
+        
+        emit CampaignCreated(campaignCount, msg.sender, _dataType);
+    }
+    
+    // Data Submission
+    function submitData(uint256 _campaignId, bytes32 _dataHash) external nonReentrant {
+        Campaign storage campaign = campaigns[_campaignId];
+        require(campaign.active, "Campaign not active");
+        require(campaign.remainingBudget >= campaign.rewardPerSubmission, "Insufficient budget");
+        
+        bytes32 submissionId = keccak256(abi.encodePacked(_campaignId, _dataHash, msg.sender));
+        campaign.submissions[submissionId] = Submission({
+            contributor: msg.sender,
+            dataHash: _dataHash,
+            qualityScore: 0,
+            verified: false,
+            rewarded: false,
+            timestamp: block.timestamp
+        });
+        
+        emit DataSubmitted(_campaignId, msg.sender, _dataHash);
+    }
+    
+    // Verification System
+    function registerVerifier() external {
+        require(dataToken.transferFrom(msg.sender, address(this), minStake), "Stake transfer failed");
+        verifiers[msg.sender] = Verifier({
+            reputation: 100,
+            totalVerifications: 0,
+            active: true
+        });
+    }
+    
+    function verifySubmission(
+        uint256 _campaignId,
+        bytes32 _submissionId,
+        uint256 _qualityScore
+    ) external {
+        require(verifiers[msg.sender].active, "Not an active verifier");
+        Campaign storage campaign = campaigns[_campaignId];
+        require(campaign.verifiers[msg.sender], "Not authorized for this campaign");
+        
+        Submission storage submission = campaign.submissions[_submissionId];
+        require(!submission.verified, "Already verified");
+        
+        submission.qualityScore = _qualityScore;
+        submission.verified = true;
+        
+        if (_qualityScore >= campaign.minQualityScore) {
+            distributeReward(_campaignId, submission.contributor);
+        }
+        
+        verifiers[msg.sender].totalVerifications++;
+        emit SubmissionVerified(_campaignId, submission.dataHash, _qualityScore);
+    }
+    
+    // Reward Distribution
+    function distributeReward(uint256 _campaignId, address _contributor) internal {
+        Campaign storage campaign = campaigns[_campaignId];
+        require(campaign.remainingBudget >= campaign.rewardPerSubmission, "Insufficient budget");
+        
+        campaign.remainingBudget -= campaign.rewardPerSubmission;
+        require(dataToken.transfer(_contributor, campaign.rewardPerSubmission), "Reward transfer failed");
+        
+        contributorScores[_contributor]++;
+        emit RewardDistributed(_contributor, campaign.rewardPerSubmission);
+    }
+    
+    // Quality Assurance
+    function updateVerifierReputation(address _verifier, bool _positiveReview) external {
+        require(msg.sender == owner(), "Only owner can update reputation");
+        Verifier storage verifier = verifiers[_verifier];
+        
+        if (_positiveReview) {
+            verifier.reputation += 1;
+        } else {
+            verifier.reputation -= 1;
+            if (verifier.reputation < 50) {
+                verifier.active = false;
+            }
+        }
+    }
+    
+    // Campaign Status
+    function getCampaignStatus(uint256 _campaignId) external view returns (
+        address creator,
+        string memory dataType,
+        uint256 remainingBudget,
+        bool active
+    ) {
+        Campaign storage campaign = campaigns[_campaignId];
+        return (
+            campaign.creator,
+            campaign.dataType,
+            campaign.remainingBudget,
+            campaign.active
+        );
+    }
+}
+
+// Privacy Layer Contract
+contract PrivacyLayer {
+    struct EncryptedData {
+        bytes32 dataHash;
+        bytes encryptedMetadata;
+        address[] authorizedUsers;
+    }
+    
+    mapping(bytes32 => EncryptedData) private encryptedDataStore;
+    
+    event DataEncrypted(bytes32 indexed dataHash, address indexed owner);
+    event AccessGranted(bytes32 indexed dataHash, address indexed user);
+    
+    function storeEncryptedData(
+        bytes32 _dataHash,
+        bytes memory _encryptedMetadata,
+        address[] memory _authorizedUsers
+    ) external {
+        EncryptedData storage data = encryptedDataStore[_dataHash];
+        data.dataHash = _dataHash;
+        data.encryptedMetadata = _encryptedMetadata;
+        data.authorizedUsers = _authorizedUsers;
+        
+        emit DataEncrypted(_dataHash, msg.sender);
+    }
+    
+    function grantAccess(bytes32 _dataHash, address _user) external {
+        EncryptedData storage data = encryptedDataStore[_dataHash];
+        require(msg.sender == data.authorizedUsers[0], "Only owner can grant access");
+        
+        data.authorizedUsers.push(_user);
+        emit AccessGranted(_dataHash, _user);
+    }
+    
+    function getEncryptedData(bytes32 _dataHash) external view returns (
+        bytes memory encryptedMetadata,
+        bool hasAccess
+    ) {
+        EncryptedData storage data = encryptedDataStore[_dataHash];
+        bool authorized = false;
+        
+        for (uint i = 0; i < data.authorizedUsers.length; i++) {
+            if (data.authorizedUsers[i] == msg.sender) {
+                authorized = true;
+                break;
+            }
+        }
+        
+        return (data.encryptedMetadata, authorized);
+    }
+}
