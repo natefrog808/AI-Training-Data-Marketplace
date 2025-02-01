@@ -2,10 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
-  Activity, AlertTriangle, CheckCircle, 
-  Server, Zap, Shield, Bell, RefreshCw 
+  Activity, 
+  AlertTriangle, 
+  CheckCircle, 
+  Server, 
+  Zap, 
+  Shield, 
+  Bell, 
+  RefreshCw,
+  ArrowUpRight,
+  ArrowDownRight
 } from 'lucide-react';
 
+// Rest of the component remains the same...
 const MonitoringInterface = () => {
   const [systemHealth, setSystemHealth] = useState({
     verification_network: { status: 'healthy', lastCheck: Date.now(), failures: 0 },
@@ -122,4 +131,112 @@ const MonitoringInterface = () => {
     </Card>
   );
 
-  const MetricsPanel =
+  const MetricsPanel = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Performance Metrics</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-blue-500" />
+                  <span className="font-semibold">Submissions</span>
+                </div>
+                <span className={`flex items-center gap-1 ${
+                  metrics.submissions.trend > 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {metrics.submissions.trend > 0 ? (
+                    <ArrowUpRight className="w-4 h-4" />
+                  ) : (
+                    <ArrowDownRight className="w-4 h-4" />
+                  )}
+                  {Math.abs(metrics.submissions.trend)}%
+                </span>
+              </div>
+              <p className="text-2xl font-bold">{metrics.submissions.total}</p>
+              <p className="text-sm text-gray-600">
+                {metrics.submissions.rate} per hour
+              </p>
+            </div>
+
+            <div className="p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="font-semibold">Quality Score</span>
+                </div>
+                <span className={`flex items-center gap-1 ${
+                  metrics.quality.trend > 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {metrics.quality.trend > 0 ? (
+                    <ArrowUpRight className="w-4 h-4" />
+                  ) : (
+                    <ArrowDownRight className="w-4 h-4" />
+                  )}
+                  {Math.abs(metrics.quality.trend)}%
+                </span>
+              </div>
+              <p className="text-2xl font-bold">{metrics.quality.average}%</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-purple-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-purple-500" />
+                  <span className="font-semibold">Network Health</span>
+                </div>
+              </div>
+              <p className="text-2xl font-bold">{metrics.network.nodes} nodes</p>
+              <p className="text-sm text-gray-600">
+                {metrics.network.load}% network load
+              </p>
+            </div>
+
+            <div className="p-4 bg-orange-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-orange-500" />
+                  <span className="font-semibold">Verifications</span>
+                </div>
+                <span className={`flex items-center gap-1 ${
+                  metrics.verifications.trend > 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {metrics.verifications.trend > 0 ? (
+                    <ArrowUpRight className="w-4 h-4" />
+                  ) : (
+                    <ArrowDownRight className="w-4 h-4" />
+                  )}
+                  {Math.abs(metrics.verifications.trend)}%
+                </span>
+              </div>
+              <p className="text-2xl font-bold">{metrics.verifications.total}</p>
+              <p className="text-sm text-gray-600">
+                {metrics.verifications.rate} per hour
+              </p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">System Monitoring</h1>
+        <p className="text-gray-600">Real-time system health and performance</p>
+      </div>
+
+      <SystemStatus />
+      <AlertPanel />
+      <MetricsPanel />
+    </div>
+  );
+};
+
+export default MonitoringInterface;
