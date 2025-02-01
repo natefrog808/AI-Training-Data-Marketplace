@@ -1,0 +1,318 @@
+// Real-time Monitoring System
+class MarketplaceMonitor {
+  constructor() {
+    this.metrics = new MetricsCollector();
+    this.alertSystem = new AlertSystem();
+    this.eventProcessor = new EventProcessor();
+    this.connections = new Map();
+    this.healthChecks = new HealthMonitor();
+  }
+
+  // Metrics Collection
+  class MetricsCollector {
+    constructor() {
+      this.metrics = {
+        submissions: new TimeSeriesMetric('submissions'),
+        verifications: new TimeSeriesMetric('verifications'),
+        quality: new TimeSeriesMetric('quality'),
+        transactions: new TimeSeriesMetric('transactions')
+      };
+      this.aggregates = new Map();
+    }
+
+    class TimeSeriesMetric {
+      constructor(name) {
+        this.name = name;
+        this.currentWindow = [];
+        this.historicalData = [];
+        this.windowSize = 300; // 5 minutes in seconds
+        this.retentionPeriod = 86400; // 24 hours in seconds
+      }
+
+      addDataPoint(value, timestamp = Date.now()) {
+        this.currentWindow.push({ value, timestamp });
+        this.pruneOldData();
+        return this.calculateStatistics();
+      }
+
+      pruneOldData() {
+        const cutoff = Date.now() - (this.retentionPeriod * 1000);
+        this.historicalData = this.historicalData.filter(point => 
+          point.timestamp > cutoff
+        );
+
+        if (this.currentWindow.length >= this.windowSize) {
+          this.historicalData.push(...this.currentWindow);
+          this.currentWindow = [];
+        }
+      }
+
+      calculateStatistics() {
+        const recentData = [...this.currentWindow, ...this.historicalData.slice(-100)];
+        const values = recentData.map(point => point.value);
+
+        return {
+          average: values.reduce((a, b) => a + b, 0) / values.length,
+          max: Math.max(...values),
+          min: Math.min(...values),
+          trend: this.calculateTrend(recentData)
+        };
+      }
+
+      calculateTrend(data) {
+        if (data.length < 2) return 0;
+        const recent = data.slice(-10);
+        const averages = [
+          recent.slice(0, 5).reduce((a, b) => a + b.value, 0) / 5,
+          recent.slice(-5).reduce((a, b) => a + b.value, 0) / 5
+        ];
+        return ((averages[1] - averages[0]) / averages[0]) * 100;
+      }
+    }
+
+    async updateMetrics(event) {
+      const { type, value, metadata } = event;
+      const metric = this.metrics[type];
+      if (metric) {
+        const stats = await metric.addDataPoint(value);
+        this.updateAggregates(type, stats);
+        return stats;
+      }
+      return null;
+    }
+
+    updateAggregates(type, stats) {
+      const current = this.aggregates.get(type) || {};
+      this.aggregates.set(type, {
+        ...current,
+        ...stats,
+        lastUpdated: Date.now()
+      });
+    }
+
+    getMetricsSummary() {
+      return Array.from(this.aggregates.entries()).reduce((summary, [key, value]) => {
+        summary[key] = value;
+        return summary;
+      }, {});
+    }
+  }
+
+  // Event Processing
+  class EventProcessor {
+    constructor() {
+      this.handlers = new Map();
+      this.eventQueue = [];
+      this.processing = false;
+    }
+
+    registerHandler(eventType, handler) {
+      if (!this.handlers.has(eventType)) {
+        this.handlers.set(eventType, []);
+      }
+      this.handlers.get(eventType).push(handler);
+    }
+
+    async processEvent(event) {
+      this.eventQueue.push(event);
+      if (!this.processing) {
+        await this.processQueue();
+      }
+    }
+
+    async processQueue() {
+      this.processing = true;
+      while (this.eventQueue.length > 0) {
+        const event = this.eventQueue.shift();
+        const handlers = this.handlers.get(event.type) || [];
+        
+        await Promise.all(handlers.map(handler => 
+          handler(event).catch(error => 
+            console.error(`Error processing event ${event.type}:`, error)
+          )
+        ));
+      }
+      this.processing = false;
+    }
+  }
+
+  // Alert System
+  class AlertSystem {
+    constructor() {
+      this.alerts = [];
+      this.rules = new Map();
+      this.subscribers = new Set();
+    }
+
+    addRule(name, condition, severity = 'warning') {
+      this.rules.set(name, { condition, severity });
+    }
+
+    subscribe(callback) {
+      this.subscribers.add(callback);
+      return () => this.subscribers.delete(callback);
+    }
+
+    async checkConditions(metrics) {
+      for (const [name, rule] of this.rules) {
+        try {
+          if (await rule.condition(metrics)) {
+            this.createAlert(name, rule.severity, metrics);
+          }
+        } catch (error) {
+          console.error(`Error checking rule ${name}:`, error);
+        }
+      }
+    }
+
+    createAlert(name, severity, metrics) {
+      const alert = {
+        id: `alert-${Date.now()}`,
+        name,
+        severity,
+        timestamp: Date.now(),
+        metrics: { ...metrics }
+      };
+
+      this.alerts.push(alert);
+      this.notifySubscribers(alert);
+    }
+
+    notifySubscribers(alert) {
+      this.subscribers.forEach(callback => callback(alert));
+    }
+
+    getActiveAlerts() {
+      return this.alerts.filter(alert => 
+        alert.timestamp > Date.now() - (30 * 60 * 1000) // Last 30 minutes
+      );
+    }
+  }
+
+  // Health Monitoring
+  class HealthMonitor {
+    constructor() {
+      this.services = new Map();
+      this.checkInterval = 60000; // 1 minute
+      this.startMonitoring();
+    }
+
+    registerService(name, checkFunction) {
+      this.services.set(name, {
+        check: checkFunction,
+        status: 'unknown',
+        lastCheck: null,
+        failures: 0
+      });
+    }
+
+    async checkHealth(serviceName) {
+      const service = this.services.get(serviceName);
+      if (!service) return;
+
+      try {
+        const healthy = await service.check();
+        service.status = healthy ? 'healthy' : 'unhealthy';
+        service.lastCheck = Date.now();
+        service.failures = healthy ? 0 : service.failures + 1;
+      } catch (error) {
+        service.status = 'error';
+        service.failures++;
+        console.error(`Health check failed for ${serviceName}:`, error);
+      }
+    }
+
+    async startMonitoring() {
+      setInterval(async () => {
+        for (const [name] of this.services) {
+          await this.checkHealth(name);
+        }
+      }, this.checkInterval);
+    }
+
+    getHealthStatus() {
+      return Array.from(this.services.entries()).reduce((status, [name, service]) => {
+        status[name] = {
+          status: service.status,
+          lastCheck: service.lastCheck,
+          failures: service.failures
+        };
+        return status;
+      }, {});
+    }
+  }
+
+  // WebSocket Connection Management
+  async handleConnection(client) {
+    const clientId = `client-${Date.now()}`;
+    this.connections.set(clientId, client);
+
+    client.on('message', async (message) => {
+      try {
+        const event = JSON.parse(message);
+        await this.eventProcessor.processEvent(event);
+      } catch (error) {
+        console.error('Error processing message:', error);
+        client.send(JSON.stringify({ error: 'Invalid message format' }));
+      }
+    });
+
+    client.on('close', () => {
+      this.connections.delete(clientId);
+    });
+
+    // Send initial state
+    client.send(JSON.stringify({
+      type: 'initial_state',
+      metrics: this.metrics.getMetricsSummary(),
+      health: this.healthChecks.getHealthStatus(),
+      alerts: this.alertSystem.getActiveAlerts()
+    }));
+  }
+
+  // Broadcast updates to all connected clients
+  broadcast(data) {
+    const message = JSON.stringify(data);
+    for (const client of this.connections.values()) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    }
+  }
+
+  // Initialize monitoring
+  async initialize() {
+    // Register health checks
+    this.healthChecks.registerService('verification_network', async () => {
+      // Check verification node health
+      return true;
+    });
+
+    this.healthChecks.registerService('blockchain_network', async () => {
+      // Check blockchain network health
+      return true;
+    });
+
+    // Register alert rules
+    this.alertSystem.addRule('high_failure_rate', 
+      (metrics) => metrics.verifications.failures > metrics.verifications.total * 0.1,
+      'critical'
+    );
+
+    this.alertSystem.addRule('low_node_participation',
+      (metrics) => metrics.network.activeNodes < 10,
+      'warning'
+    );
+
+    // Start listening for events
+    this.eventProcessor.registerHandler('submission', async (event) => {
+      const stats = await this.metrics.updateMetrics(event);
+      this.broadcast({
+        type: 'metrics_update',
+        metrics: stats
+      });
+    });
+  }
+}
+
+export default MarketplaceMonitor;
