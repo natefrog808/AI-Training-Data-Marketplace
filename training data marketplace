@@ -1,0 +1,107 @@
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Sparkles, Shield, Database, Coins, Lock, UserCheck } from 'lucide-react';
+
+const DataMarketplace = () => {
+  const [campaigns] = useState([
+    {
+      id: 1,
+      title: "Health Metrics Collection",
+      description: "Share your daily health metrics from wearable devices for AI health prediction models",
+      reward: 50,
+      dataType: "Health",
+      requirements: ["Daily activity data", "Sleep patterns", "Heart rate"],
+      participants: 1240,
+      trustScore: 98,
+    },
+    {
+      id: 2,
+      title: "Shopping Receipt Analysis",
+      description: "Help train AI to understand consumer behavior by sharing your shopping receipts",
+      reward: 30,
+      dataType: "Commerce",
+      requirements: ["Receipt images", "Purchase dates", "Store information"],
+      participants: 890,
+      trustScore: 95,
+    }
+  ]);
+
+  const DataCampaignCard = ({ campaign }) => (
+    <Card className="mb-6 hover:shadow-lg transition-shadow">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl font-bold">{campaign.title}</CardTitle>
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+            {campaign.dataType}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="mb-4 text-gray-600">{campaign.description}</p>
+        
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="flex items-center gap-2">
+            <Coins className="w-5 h-5 text-yellow-500" />
+            <span>{campaign.reward} tokens/submission</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <UserCheck className="w-5 h-5 text-green-500" />
+            <span>{campaign.participants} participants</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-purple-500" />
+            <span>{campaign.trustScore}% trust score</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Lock className="w-5 h-5 text-gray-500" />
+            <span>Privacy Protected</span>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <h4 className="font-semibold mb-2">Required Data:</h4>
+          <ul className="list-disc list-inside">
+            {campaign.requirements.map((req, index) => (
+              <li key={index} className="text-gray-600">{req}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="flex justify-between items-center">
+          <Button className="bg-blue-500 hover:bg-blue-600 text-white">
+            Participate
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2">
+            <Database className="w-4 h-4" />
+            View Details
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Data Marketplace</h1>
+          <p className="text-gray-600">Contribute data, earn tokens, advance AI</p>
+        </div>
+        <Button className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white">
+          <Sparkles className="w-5 h-5" />
+          Launch Campaign
+        </Button>
+      </div>
+
+      <div>
+        {campaigns.map(campaign => (
+          <DataCampaignCard key={campaign.id} campaign={campaign} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default DataMarketplace;
