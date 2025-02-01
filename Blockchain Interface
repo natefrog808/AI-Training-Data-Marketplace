@@ -1,0 +1,186 @@
+import { ethers } from 'ethers';
+import DataMarketplace from './contracts/DataMarketplace.json';
+import DataToken from './contracts/DataToken.json';
+import PrivacyLayer from './contracts/PrivacyLayer.json';
+
+class BlockchainService {
+  constructor(provider) {
+    this.provider = new ethers.providers.Web3Provider(provider);
+    this.signer = this.provider.getSigner();
+  }
+
+  // Contract Initialization
+  async initializeContracts(marketplaceAddress, tokenAddress, privacyAddress) {
+    this.marketplaceContract = new ethers.Contract(
+      marketplaceAddress,
+      DataMarketplace.abi,
+      this.signer
+    );
+    
+    this.tokenContract = new ethers.Contract(
+      tokenAddress,
+      DataToken.abi,
+      this.signer
+    );
+    
+    this.privacyContract = new ethers.Contract(
+      privacyAddress,
+      PrivacyLayer.abi,
+      this.signer
+    );
+  }
+
+  // Campaign Management
+  async createCampaign(dataType, rewardPerSubmission, totalBudget, minQualityScore) {
+    try {
+      // First approve token spending
+      await this.tokenContract.approve(
+        this.marketplaceContract.address,
+        totalBudget
+      );
+
+      // Create campaign
+      const tx = await this.marketplaceContract.createCampaign(
+        dataType,
+        rewardPerSubmission,
+        totalBudget,
+        minQualityScore
+      );
+      
+      return await tx.wait();
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      throw error;
+    }
+  }
+
+  // Data Submission
+  async submitData(campaignId, data) {
+    try {
+      // Encrypt data
+      const encryptedData = await this.encryptData(data);
+      const dataHash = ethers.utils.keccak256(encryptedData);
+
+      // Store encrypted data in privacy layer
+      await this.privacyContract.storeEncryptedData(
+        dataHash,
+        encryptedData,
+        [await this.signer.getAddress()]
+      );
+
+      // Submit data hash to marketplace
+      const tx = await this.marketplaceContract.submitData(
+        campaignId,
+        dataHash
+      );
+      
+      return await tx.wait();
+    } catch (error) {
+      console.error('Error submitting data:', error);
+      throw error;
+    }
+  }
+
+  // Verification System
+  async registerAsVerifier() {
+    try {
+      const minStake = await this.marketplaceContract.minStake();
+      
+      // Approve token staking
+      await this.tokenContract.approve(
+        this.marketplaceContract.address,
+        minStake
+      );
+
+      const tx = await this.marketplaceContract.registerVerifier();
+      return await tx.wait();
+    } catch (error) {
+      console.error('Error registering verifier:', error);
+      throw error;
+    }
+  }
+
+  async verifySubmission(campaignId, submissionId, qualityScore) {
+    try {
+      const tx = await this.marketplaceContract.verifySubmission(
+        campaignId,
+        submissionId,
+        qualityScore
+      );
+      return await tx.wait();
+    } catch (error) {
+      console.error('Error verifying submission:', error);
+      throw error;
+    }
+  }
+
+  // Privacy Layer
+  async encryptData(data) {
+    // Implement encryption using something like lit protocol
+    // This is a placeholder implementation
+    return ethers.utils.defaultAbiCoder.encode(['string'], [data]);
+  }
+
+  async grantDataAccess(dataHash, userAddress) {
+    try {
+      const tx = await this.privacyContract.grantAccess(
+        dataHash,
+        userAddress
+      );
+      return await tx.wait();
+    } catch (error) {
+      console.error('Error granting access:', error);
+      throw error;
+    }
+  }
+
+  // Campaign Status and Analytics
+  async getCampaignStatus(campaignId) {
+    try {
+      return await this.marketplaceContract.getCampaignStatus(campaignId);
+    } catch (error) {
+      console.error('Error getting campaign status:', error);
+      throw error;
+    }
+  }
+
+  async getContributorScore(address) {
+    try {
+      return await this.marketplaceContract.contributorScores(address);
+    } catch (error) {
+      console.error('Error getting contributor score:', error);
+      throw error;
+    }
+  }
+
+  // Token Management
+  async getTokenBalance(address) {
+    try {
+      return await this.tokenContract.balanceOf(address);
+    } catch (error) {
+      console.error('Error getting token balance:', error);
+      throw error;
+    }
+  }
+
+  // Event Listeners
+  setupEventListeners() {
+    this.marketplaceContract.on('CampaignCreated', (campaignId, creator, dataType) => {
+      console.log('New campaign created:', { campaignId, creator, dataType });
+    });
+
+    this.marketplaceContract.on('DataSubmitted', (campaignId, contributor, dataHash) => {
+      console.log('New data submitted:', { campaignId, contributor, dataHash });
+    });
+
+    this.marketplaceContract.on('SubmissionVerified', (campaignId, dataHash, qualityScore) => {
+      console.log('Submission verified:', { campaignId, dataHash, qualityScore });
+    });
+
+    this.marketplaceContract.on('RewardDistributed', (contributor, amount) => {
+      console.log('Reward distributed:', { contributor, amount });
+    });
+  }
+}
+
+export default BlockchainService;
