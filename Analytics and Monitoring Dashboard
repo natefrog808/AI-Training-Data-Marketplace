@@ -3,102 +3,59 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { 
-  TrendingUp, Users, Database, Coins, 
-  BarChart2, Shield, Activity, Award 
+  TrendingUp, Activity, AlertCircle, 
+  BarChart2, PieChart, ArrowUp, ArrowDown,
+  Target, Zap, Crosshair 
 } from 'lucide-react';
 
 const AnalyticsDashboard = () => {
-  const [timeRange, setTimeRange] = useState('1w');
-  const [marketMetrics, setMarketMetrics] = useState({
-    totalCampaigns: 156,
-    activeContributors: 2843,
-    dataVolume: '1.2TB',
-    tokenCirculation: '2.5M',
-    avgQualityScore: 92,
-    totalValue: '$450K'
+  const [selectedTimeframe, setSelectedTimeframe] = useState('1m');
+  const [selectedMetric, setSelectedMetric] = useState('all');
+
+  const [marketInsights, setMarketInsights] = useState([
+    {
+      type: 'trend',
+      title: 'Rising Demand',
+      description: 'Health data demand up 25% MoM',
+      impact: 'high',
+      confidence: 0.92
+    },
+    {
+      type: 'opportunity',
+      title: 'Quality Premium',
+      description: 'Premium pricing available for high-quality financial data',
+      impact: 'medium',
+      confidence: 0.85
+    }
+  ]);
+
+  const [predictions, setPredictions] = useState({
+    marketGrowth: [
+      { month: 'Feb', baseline: 100, optimistic: 110, pessimistic: 90 },
+      { month: 'Mar', baseline: 120, optimistic: 135, pessimistic: 105 },
+      { month: 'Apr', baseline: 140, optimistic: 160, pessimistic: 120 }
+    ],
+    qualityTrends: [
+      { category: 'Health', current: 92, predicted: 94 },
+      { category: 'Finance', current: 88, predicted: 91 },
+      { category: 'Commerce', current: 85, predicted: 88 }
+    ]
   });
 
-  // Sample data for charts
-  const activityData = [
-    { date: '2025-01-24', submissions: 245, verifications: 220, rewards: 12400 },
-    { date: '2025-01-25', submissions: 285, verifications: 260, rewards: 13200 },
-    { date: '2025-01-26', submissions: 310, verifications: 290, rewards: 14500 },
-    { date: '2025-01-27', submissions: 290, verifications: 275, rewards: 13800 },
-    { date: '2025-01-28', submissions: 340, verifications: 315, rewards: 15600 },
-    { date: '2025-01-29', submissions: 380, verifications: 350, rewards: 16900 },
-    { date: '2025-01-30', submissions: 420, verifications: 390, rewards: 18200 }
-  ];
-
-  const qualityData = [
-    { category: 'Health', avgScore: 94, volume: 450 },
-    { category: 'Commerce', avgScore: 89, volume: 380 },
-    { category: 'Finance', avgScore: 96, volume: 280 },
-    { category: 'Web', avgScore: 87, volume: 520 }
-  ];
-
-  const MarketOverview = () => (
-    <div className="grid grid-cols-3 gap-4 mb-6">
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <TrendingUp className="w-6 h-6 text-blue-500" />
-            <div>
-              <p className="text-sm text-gray-600">Total Campaigns</p>
-              <p className="text-2xl font-bold">{marketMetrics.totalCampaigns}</p>
-            </div>
-          </div>
-          <div className="h-2 bg-gray-100 rounded-full">
-            <div className="h-full w-3/4 bg-blue-500 rounded-full" />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Users className="w-6 h-6 text-green-500" />
-            <div>
-              <p className="text-sm text-gray-600">Active Contributors</p>
-              <p className="text-2xl font-bold">{marketMetrics.activeContributors}</p>
-            </div>
-          </div>
-          <div className="h-2 bg-gray-100 rounded-full">
-            <div className="h-full w-4/5 bg-green-500 rounded-full" />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Database className="w-6 h-6 text-purple-500" />
-            <div>
-              <p className="text-sm text-gray-600">Data Volume</p>
-              <p className="text-2xl font-bold">{marketMetrics.dataVolume}</p>
-            </div>
-          </div>
-          <div className="h-2 bg-gray-100 rounded-full">
-            <div className="h-full w-2/3 bg-purple-500 rounded-full" />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const ActivityChart = () => (
+  const MarketTrends = () => (
     <Card className="mb-6">
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>Marketplace Activity</CardTitle>
+          <CardTitle>Market Growth Forecast</CardTitle>
           <div className="flex gap-2">
-            {['1d', '1w', '1m', '3m'].map((range) => (
+            {['1m', '3m', '6m', '1y'].map((timeframe) => (
               <Button
-                key={range}
-                variant={timeRange === range ? 'default' : 'outline'}
+                key={timeframe}
+                variant={selectedTimeframe === timeframe ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setTimeRange(range)}
+                onClick={() => setSelectedTimeframe(timeframe)}
               >
-                {range.toUpperCase()}
+                {timeframe}
               </Button>
             ))}
           </div>
@@ -106,82 +63,100 @@ const AnalyticsDashboard = () => {
       </CardHeader>
       <CardContent className="h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={activityData}>
+          <LineChart data={predictions.marketGrowth}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis yAxisId="left" />
-            <YAxis yAxisId="right" orientation="right" />
+            <XAxis dataKey="month" />
+            <YAxis />
             <Tooltip />
             <Legend />
-            <Line yAxisId="left" type="monotone" dataKey="submissions" stroke="#2563eb" name="Submissions" />
-            <Line yAxisId="left" type="monotone" dataKey="verifications" stroke="#16a34a" name="Verifications" />
-            <Line yAxisId="right" type="monotone" dataKey="rewards" stroke="#9333ea" name="Rewards" />
+            <Line 
+              type="monotone" 
+              dataKey="baseline" 
+              stroke="#2563eb" 
+              name="Baseline"
+              strokeWidth={2}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="optimistic" 
+              stroke="#16a34a" 
+              name="Optimistic"
+              strokeDasharray="5 5"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="pessimistic" 
+              stroke="#dc2626" 
+              name="Pessimistic"
+              strokeDasharray="5 5"
+            />
           </LineChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>
   );
 
-  const QualityMetrics = () => (
+  const QualityPredictions = () => (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle>Data Quality by Category</CardTitle>
+        <CardTitle>Quality Score Predictions</CardTitle>
       </CardHeader>
       <CardContent className="h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={qualityData}>
+          <BarChart data={predictions.qualityTrends}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="category" />
-            <YAxis yAxisId="left" domain={[0, 100]} />
-            <YAxis yAxisId="right" orientation="right" />
+            <YAxis domain={[0, 100]} />
             <Tooltip />
             <Legend />
-            <Bar yAxisId="left" dataKey="avgScore" fill="#2563eb" name="Quality Score" />
-            <Bar yAxisId="right" dataKey="volume" fill="#9333ea" name="Volume" />
+            <Bar dataKey="current" fill="#2563eb" name="Current Score" />
+            <Bar dataKey="predicted" fill="#16a34a" name="Predicted Score" />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>
   );
 
-  const TokenEconomics = () => (
+  const MarketInsights = () => (
     <Card>
       <CardHeader>
-        <CardTitle>Token Economics</CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle>Market Insights</CardTitle>
+          <Button variant="outline" size="sm">
+            <Zap className="w-4 h-4 mr-2" />
+            Refresh Analysis
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-blue-50 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Coins className="w-5 h-5 text-blue-500" />
-              <span className="font-semibold">Token Circulation</span>
+        <div className="space-y-4">
+          {marketInsights.map((insight, index) => (
+            <div key={index} className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {insight.type === 'trend' ? (
+                    <TrendingUp className="w-5 h-5 text-blue-500" />
+                  ) : (
+                    <Target className="w-5 h-5 text-green-500" />
+                  )}
+                  <span className="font-semibold">{insight.title}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-1 rounded-full text-sm ${
+                    insight.impact === 'high' 
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {insight.impact} impact
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {Math.round(insight.confidence * 100)}% confidence
+                  </span>
+                </div>
+              </div>
+              <p className="text-gray-600">{insight.description}</p>
             </div>
-            <p className="text-2xl font-bold">{marketMetrics.tokenCirculation}</p>
-          </div>
-          
-          <div className="p-4 bg-purple-50 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Award className="w-5 h-5 text-purple-500" />
-              <span className="font-semibold">Total Value</span>
-            </div>
-            <p className="text-2xl font-bold">{marketMetrics.totalValue}</p>
-          </div>
-
-          <div className="p-4 bg-green-50 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Shield className="w-5 h-5 text-green-500" />
-              <span className="font-semibold">Avg Quality Score</span>
-            </div>
-            <p className="text-2xl font-bold">{marketMetrics.avgQualityScore}%</p>
-          </div>
-
-          <div className="p-4 bg-orange-50 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Activity className="w-5 h-5 text-orange-500" />
-              <span className="font-semibold">24h Volume</span>
-            </div>
-            <p className="text-2xl font-bold">52.8K</p>
-          </div>
+          ))}
         </div>
       </CardContent>
     </Card>
@@ -191,16 +166,12 @@ const AnalyticsDashboard = () => {
     <div className="max-w-7xl mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Analytics Dashboard</h1>
-        <p className="text-gray-600">Real-time insights into marketplace performance</p>
+        <p className="text-gray-600">Market insights and predictions</p>
       </div>
 
-      <MarketOverview />
-      <ActivityChart />
-      
-      <div className="grid grid-cols-2 gap-6">
-        <QualityMetrics />
-        <TokenEconomics />
-      </div>
+      <MarketTrends />
+      <QualityPredictions />
+      <MarketInsights />
     </div>
   );
 };
