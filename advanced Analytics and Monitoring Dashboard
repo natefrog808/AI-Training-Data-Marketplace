@@ -1,0 +1,106 @@
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { 
+  TrendingUp, Activity, AlertCircle, 
+  BarChart2, PieChart, ArrowUp, ArrowDown,
+  Target, Zap, Crosshair
+} from 'lucide-react';
+
+const AdvancedAnalyticsDashboard = () => {
+  const [selectedTimeframe, setSelectedTimeframe] = useState('1m');
+  const [selectedMetric, setSelectedMetric] = useState('all');
+
+  const [marketInsights, setMarketInsights] = useState([
+    {
+      type: 'trend',
+      title: 'Rising Demand',
+      description: 'Health data demand up 25% MoM',
+      impact: 'high',
+      confidence: 0.92
+    },
+    {
+      type: 'opportunity',
+      title: 'Quality Premium',
+      description: 'Premium pricing available for high-quality financial data',
+      impact: 'medium',
+      confidence: 0.85
+    }
+  ]);
+
+  const [predictions, setPredictions] = useState({
+    marketGrowth: [
+      { month: 'Feb', baseline: 100, optimistic: 110, pessimistic: 90 },
+      { month: 'Mar', baseline: 120, optimistic: 135, pessimistic: 105 },
+      { month: 'Apr', baseline: 140, optimistic: 160, pessimistic: 120 }
+    ],
+    qualityTrends: [
+      { category: 'Health', current: 92, predicted: 94 },
+      { category: 'Finance', current: 88, predicted: 91 },
+      { category: 'Commerce', current: 85, predicted: 88 }
+    ]
+  });
+
+  const MarketTrends = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Market Growth Forecast</CardTitle>
+          <div className="flex gap-2">
+            {['1m', '3m', '6m', '1y'].map((timeframe) => (
+              <Button
+                key={timeframe}
+                variant={selectedTimeframe === timeframe ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedTimeframe(timeframe)}
+              >
+                {timeframe}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={predictions.marketGrowth}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line 
+              type="monotone" 
+              dataKey="baseline" 
+              stroke="#2563eb" 
+              name="Baseline"
+              strokeWidth={2}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="optimistic" 
+              stroke="#16a34a" 
+              name="Optimistic"
+              strokeDasharray="5 5"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="pessimistic" 
+              stroke="#dc2626" 
+              name="Pessimistic"
+              strokeDasharray="5 5"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  const QualityPredictions = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Quality Score Predictions</CardTitle>
+      </CardHeader>
+      <CardContent className="h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={predictions.qualityTrends
