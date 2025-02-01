@@ -1,0 +1,231 @@
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { 
+  Upload, ShieldCheck, Coins, FileCheck, 
+  Settings, Database, Lock, AlertCircle 
+} from 'lucide-react';
+
+const CampaignCreation = () => {
+  const [step, setStep] = useState(1);
+  const [campaignData, setCampaignData] = useState({
+    title: '',
+    description: '',
+    dataType: '',
+    requirements: [],
+    rewardPerSubmission: 0,
+    privacyLevel: 'standard',
+    verificationCriteria: []
+  });
+
+  const DataTypeSelector = () => (
+    <div className="grid grid-cols-2 gap-4">
+      {[
+        { icon: Database, label: 'Health Metrics', type: 'health' },
+        { icon: FileCheck, label: 'Shopping Data', type: 'commerce' },
+        { icon: Upload, label: 'Browsing History', type: 'web' },
+        { icon: ShieldCheck, label: 'Financial Data', type: 'finance' }
+      ].map(({ icon: Icon, label, type }) => (
+        <Button
+          key={type}
+          variant={campaignData.dataType === type ? 'default' : 'outline'}
+          className="h-24 flex flex-col items-center justify-center gap-2"
+          onClick={() => setCampaignData({...campaignData, dataType: type})}
+        >
+          <Icon className="w-6 h-6" />
+          <span>{label}</span>
+        </Button>
+      ))}
+    </div>
+  );
+
+  const PrivacySettings = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between p-4 border rounded-lg">
+        <div className="flex items-center gap-3">
+          <Lock className="w-5 h-5 text-blue-500" />
+          <div>
+            <h3 className="font-semibold">End-to-End Encryption</h3>
+            <p className="text-sm text-gray-600">All data is encrypted in transit and at rest</p>
+          </div>
+        </div>
+        <Button variant="outline">Configure</Button>
+      </div>
+      
+      <div className="flex items-center justify-between p-4 border rounded-lg">
+        <div className="flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-purple-500" />
+          <div>
+            <h3 className="font-semibold">Access Control</h3>
+            <p className="text-sm text-gray-600">Define who can access the collected data</p>
+          </div>
+        </div>
+        <Button variant="outline">Set Rules</Button>
+      </div>
+    </div>
+  );
+
+  const RewardStructure = () => (
+    <div className="space-y-6">
+      <div className="p-4 border rounded-lg">
+        <h3 className="font-semibold mb-4">Base Reward Structure</h3>
+        <div className="flex items-center gap-4">
+          <Coins className="w-6 h-6 text-yellow-500" />
+          <input
+            type="number"
+            className="w-24 p-2 border rounded"
+            placeholder="Amount"
+            value={campaignData.rewardPerSubmission}
+            onChange={(e) => setCampaignData({
+              ...campaignData, 
+              rewardPerSubmission: parseInt(e.target.value)
+            })}
+          />
+          <span>tokens per submission</span>
+        </div>
+      </div>
+
+      <div className="p-4 border rounded-lg">
+        <h3 className="font-semibold mb-4">Bonus Rewards</h3>
+        <div className="space-y-2">
+          <label className="flex items-center gap-2">
+            <input type="checkbox" />
+            <span>Quality bonus (up to 50% extra)</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" />
+            <span>Consistency bonus (10% for regular submissions)</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" />
+            <span>Early contributor bonus (25% for first 100 submissions)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+
+  const VerificationSetup = () => (
+    <div className="space-y-4">
+      <div className="p-4 border rounded-lg">
+        <h3 className="font-semibold mb-4">Automated Checks</h3>
+        <div className="space-y-2">
+          {[
+            'Format validation',
+            'Data completeness check',
+            'Anomaly detection',
+            'Duplicate detection'
+          ].map((check, index) => (
+            <label key={index} className="flex items-center gap-2">
+              <input type="checkbox" defaultChecked />
+              <span>{check}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-4 border rounded-lg">
+        <h3 className="font-semibold mb-4">Custom Validation Rules</h3>
+        <Button variant="outline" className="w-full">
+          <Settings className="w-4 h-4 mr-2" />
+          Configure Custom Rules
+        </Button>
+      </div>
+    </div>
+  );
+
+  const renderStep = () => {
+    switch(step) {
+      case 1:
+        return (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Select Data Type</h2>
+            <DataTypeSelector />
+          </div>
+        );
+      case 2:
+        return (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Privacy Settings</h2>
+            <PrivacySettings />
+          </div>
+        );
+      case 3:
+        return (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Set Reward Structure</h2>
+            <RewardStructure />
+          </div>
+        );
+      case 4:
+        return (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Verification Setup</h2>
+            <VerificationSetup />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Create Data Collection Campaign</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-8">
+            <div className="flex justify-between items-center">
+              {[1, 2, 3, 4].map((stepNumber) => (
+                <div
+                  key={stepNumber}
+                  className={`flex items-center ${
+                    stepNumber < 4 ? 'flex-1' : ''
+                  }`}
+                >
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      step >= stepNumber
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200'
+                    }`}
+                  >
+                    {stepNumber}
+                  </div>
+                  {stepNumber < 4 && (
+                    <div
+                      className={`flex-1 h-1 mx-2 ${
+                        step > stepNumber ? 'bg-blue-500' : 'bg-gray-200'
+                      }`}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {renderStep()}
+
+          <div className="flex justify-between mt-8">
+            <Button
+              variant="outline"
+              onClick={() => setStep(Math.max(1, step - 1))}
+              disabled={step === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={() => step < 4 ? setStep(step + 1) : console.log('Submit')}
+            >
+              {step === 4 ? 'Launch Campaign' : 'Next'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default CampaignCreation;
