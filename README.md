@@ -194,7 +194,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 For support and questions:
 - Open an issue
 - Join our Discord community
-- Contact support@datamarketplace.com
+- Contact x @reefchaingang
 
 ## Roadmap
 
