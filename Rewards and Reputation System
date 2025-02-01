@@ -1,0 +1,329 @@
+class RewardsSystem {
+  constructor() {
+    this.reputationManager = new ReputationManager();
+    this.tokenDistributor = new TokenDistributor();
+    this.qualityAnalyzer = new QualityAnalyzer();
+    this.incentiveEngine = new IncentiveEngine();
+  }
+
+  class ReputationManager {
+    constructor() {
+      this.userScores = new Map();
+      this.activityHistory = new Map();
+      this.reputationFactors = {
+        dataQuality: 0.4,
+        consistency: 0.2,
+        volume: 0.2,
+        longevity: 0.1,
+        verification: 0.1
+      };
+    }
+
+    async updateReputation(userId, activity) {
+      // Get current reputation
+      let reputation = this.userScores.get(userId) || {
+        score: 100,
+        level: 1,
+        specializations: new Set(),
+        badges: new Set()
+      };
+
+      // Update activity history
+      this.updateActivityHistory(userId, activity);
+
+      // Calculate reputation changes
+      const changes = await this.calculateReputationChanges(userId, activity);
+      
+      // Apply changes and update level
+      reputation.score = Math.max(0, Math.min(1000, reputation.score + changes.total));
+      reputation.level = this.calculateLevel(reputation.score);
+
+      // Update specializations and badges
+      await this.updateAchievements(reputation, activity);
+
+      this.userScores.set(userId, reputation);
+      return reputation;
+    }
+
+    async calculateReputationChanges(userId, activity) {
+      const history = this.activityHistory.get(userId);
+      const changes = {
+        quality: await this.qualityAnalyzer.analyzeQuality(activity) * this.reputationFactors.dataQuality,
+        consistency: this.calculateConsistency(history) * this.reputationFactors.consistency,
+        volume: this.calculateVolumeImpact(history) * this.reputationFactors.volume,
+        longevity: this.calculateLongevityBonus(history) * this.reputationFactors.longevity,
+        verification: await this.calculateVerificationScore(activity) * this.reputationFactors.verification
+      };
+
+      return {
+        ...changes,
+        total: Object.values(changes).reduce((a, b) => a + b, 0)
+      };
+    }
+
+    calculateConsistency(history) {
+      if (!history || history.length < 2) return 0;
+      
+      // Analyze submission patterns
+      const intervals = [];
+      for (let i = 1; i < history.length; i++) {
+        intervals.push(history[i].timestamp - history[i-1].timestamp);
+      }
+
+      // Calculate consistency score based on regularity of submissions
+      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+      const variance = intervals.reduce((a, b) => a + Math.pow(b - avgInterval, 2), 0) / intervals.length;
+      
+      return Math.max(0, 100 - Math.sqrt(variance) / avgInterval);
+    }
+
+    async updateAchievements(reputation, activity) {
+      // Check for specialization achievements
+      if (activity.qualityScore >= 90) {
+        reputation.specializations.add(activity.dataType);
+      }
+
+      // Check for milestone badges
+      if (reputation.score >= 500 && !reputation.badges.has('expert')) {
+        reputation.badges.add('expert');
+      }
+
+      // Add category-specific achievements
+      await this.checkCategoryAchievements(reputation, activity);
+    }
+  }
+
+  class TokenDistributor {
+    constructor() {
+      this.rewardPools = new Map();
+      this.distributionRules = new Map();
+    }
+
+    async calculateReward(submission, quality) {
+      const baseReward = this.getBaseReward(submission.dataType);
+      const multipliers = await this.calculateMultipliers(submission, quality);
+      
+      return {
+        amount: baseReward * multipliers.total,
+        breakdown: {
+          base: baseReward,
+          multipliers,
+          bonuses: this.calculateBonuses(submission)
+        }
+      };
+    }
+
+    async calculateMultipliers(submission, quality) {
+      const multipliers = {
+        quality: this.getQualityMultiplier(quality),
+        rarity: await this.getRarityMultiplier(submission),
+        consistency: this.getConsistencyMultiplier(submission),
+        demand: await this.getDemandMultiplier(submission.dataType)
+      };
+
+      return {
+        ...multipliers,
+        total: Object.values(multipliers).reduce((a, b) => a * b, 1)
+      };
+    }
+
+    getQualityMultiplier(quality) {
+      // Higher quality data gets exponentially better rewards
+      return Math.pow(quality / 50, 2);
+    }
+
+    async getRarityMultiplier(submission) {
+      const similarSubmissions = await this.countSimilarSubmissions(submission);
+      // Rarer data types get higher rewards
+      return Math.max(1, 2 - (similarSubmissions / 1000));
+    }
+
+    getConsistencyMultiplier(submission) {
+      const streak = this.getSubmissionStreak(submission.userId);
+      // Reward consistent contributors
+      return 1 + Math.min(0.5, streak / 100);
+    }
+
+    calculateBonuses(submission) {
+      const bonuses = [];
+
+      // Early submission bonus
+      if (this.isEarlySubmission(submission)) {
+        bonuses.push({
+          type: 'early_bird',
+          amount: this.getBaseReward(submission.dataType) * 0.1
+        });
+      }
+
+      // Streak bonus
+      const streak = this.getSubmissionStreak(submission.userId);
+      if (streak > 10) {
+        bonuses.push({
+          type: 'streak',
+          amount: this.getBaseReward(submission.dataType) * (streak / 100)
+        });
+      }
+
+      return bonuses;
+    }
+  }
+
+  class QualityAnalyzer {
+    constructor() {
+      this.metrics = new Map();
+      this.thresholds = new Map();
+    }
+
+    async analyzeQuality(submission) {
+      const dataType = submission.dataType;
+      const metrics = await this.calculateMetrics(submission);
+      
+      return {
+        score: this.calculateOverallScore(metrics),
+        breakdown: metrics,
+        recommendations: await this.generateRecommendations(metrics)
+      };
+    }
+
+    async calculateMetrics(submission) {
+      return {
+        completeness: await this.checkCompleteness(submission),
+        accuracy: await this.checkAccuracy(submission),
+        consistency: await this.checkConsistency(submission),
+        timeliness: this.checkTimeliness(submission)
+      };
+    }
+
+    calculateOverallScore(metrics) {
+      const weights = {
+        completeness: 0.3,
+        accuracy: 0.3,
+        consistency: 0.2,
+        timeliness: 0.2
+      };
+
+      return Object.entries(metrics).reduce(
+        (score, [metric, value]) => score + (value * weights[metric]),
+        0
+      );
+    }
+
+    async generateRecommendations(metrics) {
+      const recommendations = [];
+
+      for (const [metric, value] of Object.entries(metrics)) {
+        if (value < 0.8) {
+          recommendations.push({
+            metric,
+            current: value,
+            target: 0.8,
+            suggestion: this.getImprovement(metric)
+          });
+        }
+      }
+
+      return recommendations;
+    }
+  }
+
+  class IncentiveEngine {
+    constructor() {
+      this.campaigns = new Map();
+      this.challenges = new Map();
+    }
+
+    async createChallenge(params) {
+      const challenge = {
+        id: `challenge-${Date.now()}`,
+        title: params.title,
+        description: params.description,
+        rewards: params.rewards,
+        criteria: params.criteria,
+        startTime: params.startTime,
+        endTime: params.endTime,
+        participants: new Set(),
+        leaderboard: new Map()
+      };
+
+      this.challenges.set(challenge.id, challenge);
+      return challenge;
+    }
+
+    async participateInChallenge(challengeId, userId) {
+      const challenge = this.challenges.get(challengeId);
+      if (!challenge) throw new Error('Challenge not found');
+
+      challenge.participants.add(userId);
+      challenge.leaderboard.set(userId, {
+        score: 0,
+        submissions: 0,
+        lastUpdated: Date.now()
+      });
+    }
+
+    async updateLeaderboard(challengeId, userId, submission) {
+      const challenge = this.challenges.get(challengeId);
+      if (!challenge) return;
+
+      const userStats = challenge.leaderboard.get(userId) || {
+        score: 0,
+        submissions: 0
+      };
+
+      const points = await this.calculateChallengePoints(submission, challenge.criteria);
+      
+      challenge.leaderboard.set(userId, {
+        score: userStats.score + points,
+        submissions: userStats.submissions + 1,
+        lastUpdated: Date.now()
+      });
+    }
+
+    getLeaderboard(challengeId) {
+      const challenge = this.challenges.get(challengeId);
+      if (!challenge) return [];
+
+      return Array.from(challenge.leaderboard.entries())
+        .map(([userId, stats]) => ({
+          userId,
+          ...stats
+        }))
+        .sort((a, b) => b.score - a.score);
+    }
+  }
+
+  // Main interface methods
+  async processSubmission(userId, submission) {
+    // Analyze quality
+    const quality = await this.qualityAnalyzer.analyzeQuality(submission);
+    
+    // Calculate rewards
+    const rewards = await this.tokenDistributor.calculateReward(submission, quality.score);
+    
+    // Update reputation
+    const reputation = await this.reputationManager.updateReputation(userId, {
+      ...submission,
+      qualityScore: quality.score
+    });
+
+    // Process any active challenges
+    await this.incentiveEngine.processSubmissionForChallenges(userId, submission);
+
+    return {
+      quality,
+      rewards,
+      reputation
+    };
+  }
+
+  async getParticipantStatus(userId) {
+    return {
+      reputation: this.reputationManager.userScores.get(userId),
+      rewards: await this.tokenDistributor.getUserRewards(userId),
+      achievements: await this.reputationManager.getUserAchievements(userId),
+      challenges: await this.incentiveEngine.getUserChallenges(userId)
+    };
+  }
+}
+
+export default RewardsSystem;
