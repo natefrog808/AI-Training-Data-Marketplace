@@ -1,0 +1,99 @@
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { 
+  Award, Star, Trophy, Sparkles, Target,
+  TrendingUp, Badge, Gift, Activity
+} from 'lucide-react';
+
+const RewardsInterface = () => {
+  const [userProfile, setUserProfile] = useState({
+    reputation: {
+      score: 756,
+      level: 4,
+      rank: 'Expert Contributor',
+      specializations: ['Health Data', 'Financial Metrics']
+    },
+    rewards: {
+      totalEarned: 12500,
+      pending: 450,
+      multiplier: 1.5
+    },
+    achievements: [
+      {
+        id: 1,
+        title: 'Quality Champion',
+        description: 'Maintained 95%+ quality score for 30 days',
+        earned: Date.now() - 86400000
+      },
+      {
+        id: 2,
+        title: 'Data Pioneer',
+        description: 'First to contribute to 5 new campaigns',
+        earned: Date.now() - 172800000
+      }
+    ]
+  });
+
+  const ReputationCard = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Reputation Status</CardTitle>
+          <div className="flex items-center gap-2">
+            <Star className="w-5 h-5 text-yellow-500" />
+            <span className="font-bold">Level {userProfile.reputation.level}</span>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-gray-600">Reputation Score</span>
+            <span className="font-bold">{userProfile.reputation.score}</span>
+          </div>
+          <div className="h-2 bg-gray-100 rounded-full">
+            <div 
+              className="h-full bg-blue-500 rounded-full transition-all duration-500"
+              style={{ width: `${(userProfile.reputation.score / 1000) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Badge className="w-5 h-5 text-blue-500" />
+              <span className="font-semibold">Rank</span>
+            </div>
+            <p className="text-lg font-bold">{userProfile.reputation.rank}</p>
+          </div>
+
+          <div className="p-4 bg-purple-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-5 h-5 text-purple-500" />
+              <span className="font-semibold">Specializations</span>
+            </div>
+            <p className="text-lg font-bold">{userProfile.reputation.specializations.length}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const RewardsCard = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Rewards Overview</CardTitle>
+          <Button variant="outline" className="flex items-center gap-2">
+            <Gift className="w-4 h-4" />
+            Claim Rewards
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="p-4 bg-green-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Award className="w-5 h-5 text-green-
