@@ -1,0 +1,233 @@
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { 
+  Brain, 
+  Network,
+  Sparkles,
+  Activity,
+  GitBranch,
+  Zap,
+  Share2,
+  ArrowUpRight,
+  Bug,
+  Cpu
+} from 'lucide-react';
+
+const NeuralSwarmInterface = () => {
+  const [neuralMetrics, setNeuralMetrics] = useState({
+    adaptiveScore: 94,
+    networkEfficiency: 88,
+    emergentPatterns: 23,
+    evolutionStage: 5
+  });
+
+  const [evolutionHistory] = useState([
+    { time: '1h', efficiency: 82, adaptation: 78, emergence: 85 },
+    { time: '2h', efficiency: 85, adaptation: 82, emergence: 87 },
+    { time: '3h', efficiency: 89, adaptation: 88, emergence: 90 },
+    { time: '4h', efficiency: 92, adaptation: 91, emergence: 93 }
+  ]);
+
+  const [activeStrategies] = useState([
+    {
+      id: 'strategy-1',
+      type: 'hybrid',
+      confidence: 95,
+      neurons: 128,
+      agents: 45
+    },
+    {
+      id: 'strategy-2',
+      type: 'adaptive',
+      confidence: 92,
+      neurons: 96,
+      agents: 38
+    }
+  ]);
+
+  const NetworkOverview = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Neural Swarm Overview</CardTitle>
+          <Button variant="outline" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            View Architecture
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-blue-500" />
+                  <span className="font-semibold">Adaptive Score</span>
+                </div>
+                <span className="text-2xl font-bold">{neuralMetrics.adaptiveScore}%</span>
+              </div>
+              <div className="w-full h-2 bg-blue-100 rounded-full">
+                <div
+                  className="h-full bg-blue-500 rounded-full"
+                  style={{ width: `${neuralMetrics.adaptiveScore}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Network className="w-5 h-5 text-green-500" />
+                  <span className="font-semibold">Network Efficiency</span>
+                </div>
+                <span className="text-2xl font-bold">{neuralMetrics.networkEfficiency}%</span>
+              </div>
+              <div className="w-full h-2 bg-green-100 rounded-full">
+                <div
+                  className="h-full bg-green-500 rounded-full"
+                  style={{ width: `${neuralMetrics.networkEfficiency}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-purple-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-purple-500" />
+                  <span className="font-semibold">Emergent Patterns</span>
+                </div>
+                <span className="text-2xl font-bold">{neuralMetrics.emergentPatterns}</span>
+              </div>
+              <div className="flex justify-between text-sm mt-2">
+                <span>New behaviors: 5</span>
+                <span className="text-green-600">High complexity</span>
+              </div>
+            </div>
+
+            <div className="p-4 bg-orange-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <GitBranch className="w-5 h-5 text-orange-500" />
+                  <span className="font-semibold">Evolution Stage</span>
+                </div>
+                <span className="text-2xl font-bold">Stage {neuralMetrics.evolutionStage}</span>
+              </div>
+              <div className="flex justify-between text-sm mt-2">
+                <span>Next evolution: 2h</span>
+                <span className="text-blue-600">Optimizing</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const EvolutionChart = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Evolution Progress</CardTitle>
+      </CardHeader>
+      <CardContent className="h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={evolutionHistory}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis domain={[0, 100]} />
+            <Tooltip />
+            <Legend />
+            <Line 
+              type="monotone" 
+              dataKey="efficiency" 
+              stroke="#2563eb" 
+              name="Network Efficiency"
+              strokeWidth={2}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="adaptation" 
+              stroke="#16a34a" 
+              name="Adaptation Rate"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="emergence" 
+              stroke="#9333ea" 
+              name="Emergent Behavior"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  const ActiveStrategies = () => (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Active Neural Strategies</CardTitle>
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <Zap className="w-4 h-4" />
+            Optimize
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {activeStrategies.map(strategy => (
+            <div key={strategy.id} className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Cpu className="w-5 h-5 text-blue-500" />
+                  <span className="font-semibold capitalize">{strategy.type} Strategy</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Confidence</span>
+                  <span className="font-bold">{strategy.confidence}%</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Active Neurons</p>
+                  <div className="flex items-center gap-2">
+                    <Brain className="w-4 h-4 text-purple-500" />
+                    <span className="font-bold">{strategy.neurons}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Swarm Agents</p>
+                  <div className="flex items-center gap-2">
+                    <Bug className="w-4 h-4 text-green-500" />
+                    <span className="font-bold">{strategy.agents}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Neural Swarm Intelligence</h1>
+        <p className="text-gray-600">Hybrid neural network and swarm optimization system</p>
+      </div>
+
+      <NetworkOverview />
+      <div className="grid grid-cols-2 gap-6">
+        <EvolutionChart />
+        <ActiveStrategies />
+      </div>
+    </div>
+  );
+};
+
+export default NeuralSwarmInterface;
