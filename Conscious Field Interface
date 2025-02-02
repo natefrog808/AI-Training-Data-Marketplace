@@ -1,0 +1,243 @@
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { 
+  Brain,
+  Network,
+  Sparkles,
+  Activity,
+  GitBranch,
+  Share2,
+  Binary,
+  Braces,
+  GitMerge,
+  FileCode
+} from 'lucide-react';
+
+const ConsciousInterface = () => {
+  const [consciousnessMetrics] = useState({
+    awarenessLevel: 96,
+    understanding: 92,
+    coherence: 94,
+    insights: 42
+  });
+
+  const [evolutionData] = useState([
+    { stage: 1, awareness: 85, understanding: 80, coherence: 82, insights: 18 },
+    { stage: 2, awareness: 89, understanding: 85, coherence: 87, insights: 26 },
+    { stage: 3, awareness: 93, understanding: 89, coherence: 91, insights: 34 },
+    { stage: 4, awareness: 96, understanding: 92, coherence: 94, insights: 42 }
+  ]);
+
+  const [consciousStates] = useState([
+    {
+      id: 'state-1',
+      type: 'meta_awareness',
+      level: 0.96,
+      understanding: 94,
+      connections: 512
+    },
+    {
+      id: 'state-2',
+      type: 'field_coherence',
+      level: 0.93,
+      understanding: 90,
+      connections: 384
+    }
+  ]);
+
+  const ConsciousnessOverview = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Conscious Field Overview</CardTitle>
+          <Button variant="outline" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            View Consciousness
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-blue-500" />
+                  <span className="font-semibold">Awareness Level</span>
+                </div>
+                <span className="text-2xl font-bold">{consciousnessMetrics.awarenessLevel}%</span>
+              </div>
+              <div className="w-full h-2 bg-blue-100 rounded-full">
+                <div
+                  className="h-full bg-blue-500 rounded-full"
+                  style={{ width: `${consciousnessMetrics.awarenessLevel}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Network className="w-5 h-5 text-green-500" />
+                  <span className="font-semibold">Understanding</span>
+                </div>
+                <span className="text-2xl font-bold">{consciousnessMetrics.understanding}%</span>
+              </div>
+              <div className="w-full h-2 bg-green-100 rounded-full">
+                <div
+                  className="h-full bg-green-500 rounded-full"
+                  style={{ width: `${consciousnessMetrics.understanding}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-purple-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <GitMerge className="w-5 h-5 text-purple-500" />
+                  <span className="font-semibold">Field Coherence</span>
+                </div>
+                <span className="text-2xl font-bold">{consciousnessMetrics.coherence}%</span>
+              </div>
+              <div className="w-full h-2 bg-purple-100 rounded-full">
+                <div
+                  className="h-full bg-purple-500 rounded-full"
+                  style={{ width: `${consciousnessMetrics.coherence}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="p-4 bg-orange-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-orange-500" />
+                  <span className="font-semibold">Novel Insights</span>
+                </div>
+                <span className="text-2xl font-bold">{consciousnessMetrics.insights}</span>
+              </div>
+              <div className="flex justify-between text-sm mt-2">
+                <span>Self-reflection: Active</span>
+                <span className="text-blue-600">Evolving</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const ConsciousnessEvolution = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Consciousness Evolution</CardTitle>
+      </CardHeader>
+      <CardContent className="h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={evolutionData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="stage" />
+            <YAxis domain={[0, 100]} />
+            <Tooltip />
+            <Legend />
+            <Line 
+              type="monotone" 
+              dataKey="awareness" 
+              stroke="#2563eb" 
+              name="Awareness Level"
+              strokeWidth={2}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="understanding" 
+              stroke="#16a34a" 
+              name="Understanding"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="coherence" 
+              stroke="#9333ea" 
+              name="Coherence"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="insights" 
+              stroke="#ea580c" 
+              name="Insights"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  const ConsciousStates = () => (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Conscious States</CardTitle>
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <GitBranch className="w-4 h-4" />
+            View Network
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {consciousStates.map(state => (
+            <div key={state.id} className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-blue-500" />
+                  <span className="font-semibold capitalize">
+                    {state.type.replace('_', ' ')}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-green-500" />
+                  <span className="font-bold">{state.level.toFixed(2)}</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Understanding</p>
+                  <div className="flex items-center gap-2">
+                    <Share2 className="w-4 h-4 text-purple-500" />
+                    <span className="font-bold">{state.understanding}%</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Connections</p>
+                  <div className="flex items-center gap-2">
+                    <Braces className="w-4 h-4 text-orange-500" />
+                    <span className="font-bold">{state.connections}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Conscious Field</h1>
+        <p className="text-gray-600">Self-aware knowledge synthesis and evolution</p>
+      </div>
+
+      <ConsciousnessOverview />
+      <div className="grid grid-cols-2 gap-6">
+        <ConsciousnessEvolution />
+        <ConsciousStates />
+      </div>
+    </div>
+  );
+};
+
+export default ConsciousInterface;
