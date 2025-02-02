@@ -1,0 +1,133 @@
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { 
+  LayoutDashboard,
+  Brain,
+  Database,
+  BarChart2,
+  Target,
+  Zap,
+  Activity,
+  Settings,
+  Users
+} from 'lucide-react';
+
+const PlatformInterface = () => {
+  const [platformMetrics] = useState({
+    activeCampaigns: 24,
+    contributors: 1256,
+    dataQuality: 94,
+    totalValue: "1.2M"
+  });
+
+  const [currentSection, setCurrentSection] = useState('dashboard');
+
+  const Navigation = () => (
+    <div className="fixed left-0 w-64 h-screen bg-white border-r p-4">
+      <div className="mb-8">
+        <h2 className="text-xl font-bold">AI Data Marketplace</h2>
+      </div>
+      <nav className="space-y-2">
+        <NavItem icon={<LayoutDashboard />} label="Dashboard" section="dashboard" />
+        <NavItem icon={<Database />} label="Campaigns" section="campaigns" />
+        <NavItem icon={<Brain />} label="Quality" section="quality" />
+        <NavItem icon={<BarChart2 />} label="Analytics" section="analytics" />
+        <NavItem icon={<Target />} label="Market" section="market" />
+        <NavItem icon={<Settings />} label="Settings" section="settings" />
+      </nav>
+    </div>
+  );
+
+  const NavItem = ({ icon, label, section }) => (
+    <button
+      className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left
+        ${currentSection === section ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}
+      onClick={() => setCurrentSection(section)}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
+  );
+
+  const PlatformOverview = () => (
+    <div className="grid grid-cols-4 gap-6 mb-6">
+      <MetricCard 
+        title="Active Campaigns"
+        value={platformMetrics.activeCampaigns}
+        icon={<Database className="w-5 h-5 text-blue-500" />}
+      />
+      <MetricCard 
+        title="Contributors"
+        value={platformMetrics.contributors}
+        icon={<Users className="w-5 h-5 text-green-500" />}
+      />
+      <MetricCard 
+        title="Data Quality"
+        value={`${platformMetrics.dataQuality}%`}
+        icon={<Activity className="w-5 h-5 text-purple-500" />}
+      />
+      <MetricCard 
+        title="Total Value"
+        value={platformMetrics.totalValue}
+        icon={<Zap className="w-5 h-5 text-orange-500" />}
+      />
+    </div>
+  );
+
+  const MetricCard = ({ title, value, icon }) => (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="flex items-center justify-between mb-2">
+          {icon}
+          <span className="text-2xl font-bold">{value}</span>
+        </div>
+        <p className="text-gray-600">{title}</p>
+      </CardContent>
+    </Card>
+  );
+
+  const MainContent = () => {
+    switch (currentSection) {
+      case 'dashboard':
+        return <PlatformOverview />;
+      case 'campaigns':
+        return <CampaignManager />;
+      case 'quality':
+        return <QualityEnhancer />;
+      case 'analytics':
+        return <MarketIntelligence />;
+      case 'market':
+        return <MarketOptimizer />;
+      default:
+        return <PlatformOverview />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      <div className="ml-64 p-8">
+        <header className="mb-8">
+          <h1 className="text-2xl font-bold mb-2">
+            {currentSection.charAt(0).toUpperCase() + currentSection.slice(1)}
+          </h1>
+          <p className="text-gray-600">
+            Manage and optimize your AI training data marketplace
+          </p>
+        </header>
+        <main>
+          <MainContent />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+// Import subcomponents
+const CampaignManager = React.lazy(() => import('./CampaignManager'));
+const QualityEnhancer = React.lazy(() => import('./QualityEnhancer'));
+const MarketIntelligence = React.lazy(() => import('./MarketIntelligence'));
+const MarketOptimizer = React.lazy(() => import('./MarketOptimizer'));
+
+export default PlatformInterface;
