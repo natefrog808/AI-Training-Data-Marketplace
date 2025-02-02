@@ -1,0 +1,238 @@
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { 
+  Brain, 
+  TrendingUp, 
+  Target, 
+  Zap,
+  BarChart2,
+  Sparkles,
+  Puzzle,
+  Scale 
+} from 'lucide-react';
+
+const OptimizationInterface = () => {
+  const [optimizationState, setOptimizationState] = useState({
+    marketBalance: 92,
+    efficiency: 87,
+    predictedGrowth: 23,
+    qualityScore: 94
+  });
+
+  const [predictions, setPredictions] = useState({
+    demand: [
+      { time: '1h', baseline: 100, predicted: 120, optimized: 135 },
+      { time: '2h', baseline: 105, predicted: 128, optimized: 142 },
+      { time: '3h', baseline: 110, predicted: 135, optimized: 150 },
+      { time: '4h', baseline: 108, predicted: 140, optimized: 158 }
+    ],
+    prices: [
+      { category: 'Health', current: 50, optimal: 65, efficiency: 78 },
+      { category: 'Finance', current: 45, optimal: 52, efficiency: 85 },
+      { category: 'Commerce', current: 40, optimal: 48, efficiency: 82 }
+    ]
+  });
+
+  const MarketBalanceCard = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Market Balance Score</CardTitle>
+          <div className="flex items-center gap-2">
+            <Scale className="w-5 h-5 text-blue-500" />
+            <span className="text-2xl font-bold">{optimizationState.marketBalance}%</span>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="w-full h-2 bg-gray-100 rounded-full mb-4">
+          <div
+            className="h-full bg-blue-500 rounded-full transition-all duration-500"
+            style={{ width: `${optimizationState.marketBalance}%` }}
+          />
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Supply Balance</p>
+            <p className="font-bold">94%</p>
+          </div>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Demand Match</p>
+            <p className="font-bold">89%</p>
+          </div>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Price Efficiency</p>
+            <p className="font-bold">93%</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const DemandPredictionChart = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Demand Prediction & Optimization</CardTitle>
+          <Button variant="outline" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            Retrain Model
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={predictions.demand}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line 
+              type="monotone" 
+              dataKey="baseline" 
+              stroke="#94a3b8" 
+              name="Baseline"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="predicted" 
+              stroke="#2563eb" 
+              name="Predicted"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="optimized" 
+              stroke="#16a34a" 
+              name="Optimized"
+              strokeWidth={2}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  const OptimizationMetrics = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Optimization Metrics</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-blue-500" />
+                  <span className="font-semibold">Market Efficiency</span>
+                </div>
+                <span className="text-2xl font-bold">{optimizationState.efficiency}%</span>
+              </div>
+              <div className="w-full h-2 bg-blue-100 rounded-full">
+                <div
+                  className="h-full bg-blue-500 rounded-full"
+                  style={{ width: `${optimizationState.efficiency}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-green-500" />
+                  <span className="font-semibold">Quality Score</span>
+                </div>
+                <span className="text-2xl font-bold">{optimizationState.qualityScore}%</span>
+              </div>
+              <div className="w-full h-2 bg-green-100 rounded-full">
+                <div
+                  className="h-full bg-green-500 rounded-full"
+                  style={{ width: `${optimizationState.qualityScore}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="p-4 bg-purple-50 rounded-lg h-full">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-purple-500" />
+                  <span className="font-semibold">Growth Prediction</span>
+                </div>
+                <span className="text-2xl font-bold">+{optimizationState.predictedGrowth}%</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Supply Growth</span>
+                  <span className="font-medium">+18%</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>Demand Growth</span>
+                  <span className="font-medium">+27%</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>Quality Improvement</span>
+                  <span className="font-medium">+12%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const PriceOptimization = () => (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Price Optimization</CardTitle>
+          <Button variant="outline" size="sm">
+            <Zap className="w-4 h-4 mr-2" />
+            Apply Optimal
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={predictions.prices}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="category" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="current" fill="#94a3b8" name="Current Price" />
+            <Bar dataKey="optimal" fill="#2563eb" name="Optimal Price" />
+            <Bar dataKey="efficiency" fill="#16a34a" name="Efficiency" />
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Market Optimization</h1>
+        <p className="text-gray-600">AI-powered market balance and efficiency optimization</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-6">
+        <div>
+          <MarketBalanceCard />
+          <DemandPredictionChart />
+        </div>
+        <div>
+          <OptimizationMetrics />
+          <PriceOptimization />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OptimizationInterface;
