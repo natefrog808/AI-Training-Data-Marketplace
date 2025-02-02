@@ -1,174 +1,285 @@
 class MarketOptimizer {
   constructor() {
-    this.demandPredictor = new DemandPredictor();
-    this.priceOptimizer = new PriceOptimizer();
-    this.qualityEnhancer = new QualityEnhancer();
-    this.gameTheoryEngine = new GameTheoryEngine();
+    this.priceOptimizer = new SwarmPriceOptimizer();
+    this.qualityVerifier = new CollectiveVerification();
+    this.matchingEngine = new EmergentMatching();
+    this.rewardCalculator = new RewardCalculator();
   }
 
-  class DemandPredictor {
+  class SwarmPriceOptimizer {
     constructor() {
-      this.timeSeriesModel = new TimeSeriesModel();
-      this.marketSegments = new Map();
-      this.seasonalityDetector = new SeasonalityDetector();
-      this.anomalyDetector = new AnomalyDetector();
+      this.priceAgents = new Map();
+      this.marketMemory = new Map();
+      this.convergenceThreshold = 0.01;
     }
 
-    async predictDemand(dataType, timeframe) {
-      // Analyze historical patterns
-      const historicalData = await this.timeSeriesModel.analyze(dataType);
-      
-      // Detect seasonality and trends
-      const seasonality = await this.seasonalityDetector.detect(historicalData);
-      
-      // Factor in market conditions
-      const marketFactors = await this.analyzeMarketFactors(dataType);
-      
-      // Generate multi-scenario predictions
-      return this.generatePredictions(historicalData, seasonality, marketFactors);
+    async findOptimalPrices(marketState) {
+      const agents = this.initializeAgents(marketState);
+      let iteration = 0;
+      let converged = false;
+
+      while (!converged && iteration < 100) {
+        // Each agent explores price space
+        const explorations = await Promise.all(
+          agents.map(agent => this.explorePrice(agent, marketState))
+        );
+
+        // Share information between agents
+        this.shareInformation(agents, explorations);
+
+        // Update best prices
+        const updates = this.updatePrices(agents, explorations);
+
+        // Check convergence
+        converged = this.checkConvergence(updates);
+        iteration++;
+      }
+
+      return {
+        prices: this.aggregatePrices(agents),
+        confidence: this.calculateConfidence(agents),
+        iterations: iteration
+      };
     }
 
-    async analyzeMarketFactors(dataType) {
-      const factors = {
-        competitorActivity: await this.analyzeCompetitors(dataType),
-        marketSaturation: await this.calculateSaturation(dataType),
-        emergingTrends: await this.detectTrends(dataType)
+    explorePrice(agent, marketState) {
+      const exploration = {
+        basePrice: this.calculateBasePrice(agent, marketState),
+        qualityMultiplier: this.calculateQualityMultiplier(marketState.quality),
+        demandFactor: this.calculateDemandFactor(marketState.demand),
+        supplyFactor: this.calculateSupplyFactor(marketState.supply)
       };
 
-      return this.weightFactors(factors);
+      return {
+        ...exploration,
+        finalPrice: this.computeFinalPrice(exploration)
+      };
+    }
+
+    calculateBasePrice(agent, state) {
+      return (state.historicalPrice * 0.6) + 
+             (state.competitorPrice * 0.2) + 
+             (agent.lastOptimalPrice * 0.2);
+    }
+
+    calculateQualityMultiplier(quality) {
+      return Math.pow(quality / 50, 1.5); // Exponential reward for quality
+    }
+
+    calculateDemandFactor(demand) {
+      return 1 + Math.log(1 + demand / 100); // Logarithmic scaling for demand
     }
   }
 
-  class PriceOptimizer {
+  class CollectiveVerification {
     constructor() {
-      this.elasticityModel = new ElasticityModel();
-      this.gameTheoryModel = new GameTheoryModel();
-      this.equilibriumFinder = new EquilibriumFinder();
+      this.verifiers = new Map();
+      this.consensusThreshold = 0.8;
+      this.qualityMetrics = new QualityMetrics();
     }
 
-    async optimizePrice(dataType, marketConditions) {
-      // Calculate price elasticity
-      const elasticity = await this.elasticityModel.calculate(dataType);
-      
-      // Find Nash equilibrium
-      const equilibrium = await this.gameTheoryModel.findEquilibrium(marketConditions);
-      
-      // Generate optimal price curve
-      return this.generatePriceCurve(elasticity, equilibrium);
+    async verifyCollectively(submissionData) {
+      // Distribute submissions to verifiers
+      const verificationTasks = this.distributeVerificationTasks(
+        submissionData.submissions,
+        submissionData.verifiers
+      );
+
+      // Perform parallel verification
+      const verificationResults = await Promise.all(
+        verificationTasks.map(task => this.verifySubmission(task))
+      );
+
+      // Achieve consensus
+      const consensus = await this.achieveConsensus(verificationResults);
+
+      // Calculate final quality scores
+      return {
+        scores: this.calculateQualityScores(consensus),
+        confidence: this.calculateVerificationConfidence(consensus),
+        verifiers: this.updateVerifierReputations(consensus)
+      };
     }
 
-    async generatePriceCurve(elasticity, equilibrium) {
-      const baseLine = await this.calculateBaseLine(elasticity);
-      const adjustments = await this.calculateAdjustments(equilibrium);
+    async verifySubmission(task) {
+      const metrics = await this.qualityMetrics.evaluate(task.submission);
       
       return {
-        optimal: baseLine.optimal * adjustments.multiplier,
-        range: {
-          min: baseLine.min * adjustments.multiplier,
-          max: baseLine.max * adjustments.multiplier
-        },
-        confidence: this.calculateConfidence(elasticity, equilibrium)
+        submissionId: task.submissionId,
+        verifierId: task.verifierId,
+        metrics,
+        confidence: this.calculateConfidence(metrics)
       };
     }
-  }
 
-  class QualityEnhancer {
-    constructor() {
-      this.feedbackAnalyzer = new FeedbackAnalyzer();
-      this.qualityPredictor = new QualityPredictor();
-      this.enhancementEngine = new EnhancementEngine();
-    }
+    async achieveConsensus(results) {
+      const groupedResults = this.groupResultsBySubmission(results);
+      const consensus = {};
 
-    async optimizeQuality(submission) {
-      // Analyze current quality
-      const qualityScore = await this.analyzeQuality(submission);
-      
-      // Predict potential improvements
-      const improvements = await this.predictImprovements(submission);
-      
-      // Generate enhancement recommendations
-      return this.generateRecommendations(qualityScore, improvements);
-    }
+      for (const [submissionId, verifications] of groupedResults) {
+        consensus[submissionId] = this.findConsensus(verifications);
+      }
 
-    async predictImprovements(submission) {
-      const potentialEnhancements = await this.enhancementEngine.analyze(submission);
-      return this.rankEnhancements(potentialEnhancements);
+      return consensus;
     }
   }
 
-  class GameTheoryEngine {
+  class EmergentMatching {
     constructor() {
-      this.strategyAnalyzer = new StrategyAnalyzer();
-      this.incentiveOptimizer = new IncentiveOptimizer();
-      this.reputationModeler = new ReputationModeler();
+      this.matchingAgents = new Map();
+      this.compatibilityEngine = new CompatibilityEngine();
+      this.optimizationEngine = new OptimizationEngine();
     }
 
-    async optimizeStrategies(marketState) {
-      // Analyze current strategies
-      const currentStrategies = await this.strategyAnalyzer.analyze(marketState);
-      
-      // Find optimal incentive structures
-      const incentives = await this.incentiveOptimizer.optimize(currentStrategies);
-      
-      // Model reputation impacts
-      const reputationImpacts = await this.reputationModeler.predict(incentives);
-      
-      return this.generateOptimalStrategy(currentStrategies, incentives, reputationImpacts);
-    }
+    async matchCampaigns(marketState) {
+      // Initialize matching agents
+      const agents = this.initializeAgents(marketState.campaigns);
 
-    async generateOptimalStrategy(strategies, incentives, reputationImpacts) {
+      // Find optimal matches
+      const matches = await this.findOptimalMatches(
+        agents,
+        marketState.contributors
+      );
+
+      // Optimize assignments
+      const optimizedMatches = await this.optimizeAssignments(
+        matches,
+        marketState.constraints
+      );
+
       return {
-        optimalStrategy: this.findParetoCurve(strategies),
-        incentiveStructure: this.optimizeIncentives(incentives),
-        reputationStrategy: this.optimizeReputation(reputationImpacts)
+        matches: optimizedMatches,
+        quality: this.assessMatchQuality(optimizedMatches),
+        recommendations: this.generateRecommendations(optimizedMatches)
       };
+    }
+
+    async findOptimalMatches(agents, contributors) {
+      const matches = new Map();
+
+      for (const agent of agents) {
+        // Calculate compatibility scores
+        const scores = await this.calculateCompatibility(
+          agent,
+          contributors
+        );
+
+        // Find best matches
+        const bestMatches = this.findBestMatches(scores);
+
+        matches.set(agent.campaignId, bestMatches);
+      }
+
+      return matches;
+    }
+
+    calculateCompatibility(agent, contributors) {
+      return contributors.map(contributor => ({
+        contributorId: contributor.id,
+        score: this.compatibilityEngine.calculateScore(agent, contributor),
+        factors: this.analyzeCompatibilityFactors(agent, contributor)
+      }));
     }
   }
 
-  // Main optimization interface
-  async optimizeMarket(currentState) {
-    // Predict future demand
-    const demandPrediction = await this.demandPredictor.predictDemand(
-      currentState.dataType,
-      currentState.timeframe
-    );
+  class RewardCalculator {
+    constructor() {
+      this.rewardModels = new Map();
+      this.valueEstimator = new ValueEstimator();
+    }
 
-    // Optimize pricing
-    const priceOptimization = await this.priceOptimizer.optimizePrice(
-      currentState.dataType,
-      currentState.marketConditions
-    );
+    async calculateRewards(matches, marketState) {
+      const rewards = new Map();
 
-    // Enhance quality
-    const qualityEnhancements = await this.qualityEnhancer.optimizeQuality(
-      currentState.submissions
-    );
+      for (const [campaignId, match] of matches) {
+        // Calculate base reward
+        const baseReward = this.calculateBaseReward(match, marketState);
 
-    // Generate game theory strategies
-    const optimalStrategies = await this.gameTheoryEngine.optimizeStrategies(
-      currentState
+        // Apply quality multipliers
+        const qualityMultiplier = this.calculateQualityMultiplier(
+          match,
+          marketState.qualityScores
+        );
+
+        // Apply market adjustments
+        const marketMultiplier = this.calculateMarketMultiplier(
+          match,
+          marketState.marketConditions
+        );
+
+        rewards.set(campaignId, {
+          baseReward,
+          qualityMultiplier,
+          marketMultiplier,
+          finalReward: baseReward * qualityMultiplier * marketMultiplier
+        });
+      }
+
+      return rewards;
+    }
+
+    calculateBaseReward(match, state) {
+      const value = this.valueEstimator.estimateValue(match, state);
+      return value * this.getRewardRate(state.marketConditions);
+    }
+
+    calculateQualityMultiplier(match, qualityScores) {
+      const quality = qualityScores.get(match.contributorId);
+      return Math.pow(quality / 50, 2); // Quadratic scaling with quality
+    }
+  }
+
+  // Main interface methods
+  async optimizeMarket(state) {
+    // Find optimal prices
+    const pricing = await this.priceOptimizer.findOptimalPrices({
+      supply: state.dataAvailability,
+      demand: state.campaignRequirements,
+      quality: state.dataQualityScores
+    });
+
+    // Verify quality collectively
+    const qualityVerification = await this.qualityVerifier.verifyCollectively({
+      submissions: state.newData,
+      verifiers: state.networkNodes,
+      historicalData: state.verifiedData
+    });
+
+    // Match campaigns and contributors
+    const matches = await this.matchingEngine.matchCampaigns({
+      campaigns: state.activeCampaigns,
+      contributors: state.availableContributors,
+      qualityScores: qualityVerification.scores
+    });
+
+    // Calculate rewards
+    const rewards = await this.rewardCalculator.calculateRewards(
+      matches,
+      {
+        qualityScores: qualityVerification.scores,
+        marketConditions: state.marketConditions
+      }
     );
 
     return {
-      predictions: demandPrediction,
-      pricing: priceOptimization,
-      quality: qualityEnhancements,
-      strategies: optimalStrategies,
-      recommendations: await this.generateRecommendations(
-        demandPrediction,
-        priceOptimization,
-        qualityEnhancements,
-        optimalStrategies
-      )
+      pricing,
+      qualityVerification,
+      matches,
+      rewards,
+      recommendations: this.generateRecommendations({
+        pricing,
+        matches,
+        rewards
+      })
     };
   }
 
-  async generateRecommendations(demand, pricing, quality, strategies) {
+  generateRecommendations(results) {
     return {
-      immediate: this.generateImmediateActions(demand, pricing),
-      shortTerm: this.generateShortTermStrategy(quality, strategies),
-      longTerm: this.generateLongTermStrategy(demand, strategies),
-      riskMitigation: this.generateRiskStrategy(demand, pricing, quality)
+      pricing: this.generatePricingRecommendations(results.pricing),
+      quality: this.generateQualityRecommendations(results.qualityVerification),
+      matching: this.generateMatchingRecommendations(results.matches),
+      rewards: this.generateRewardRecommendations(results.rewards)
     };
   }
 }
