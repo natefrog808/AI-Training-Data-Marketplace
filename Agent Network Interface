@@ -1,0 +1,222 @@
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { 
+  Brain, 
+  Network,
+  Zap,
+  Target,
+  Shield,
+  Activity,
+  GitBranch,
+  RefreshCcw,
+  AlertCircle,
+  CheckCircle,
+  ArrowUpRight
+} from 'lucide-react';
+
+const AgentInterface = () => {
+  const [agentMetrics, setAgentMetrics] = useState({
+    networkHealth: 96,
+    agentSync: 92,
+    decisions: 156,
+    accuracy: 94.5
+  });
+
+  const [agentActivity] = useState({
+    pricing: { status: 'active', confidence: 89, actions: 34 },
+    quality: { status: 'active', confidence: 92, actions: 28 },
+    matching: { status: 'active', confidence: 87, actions: 45 },
+    risk: { status: 'active', confidence: 91, actions: 23 }
+  });
+
+  const [networkHistory] = useState([
+    { time: '1h', coordination: 92, efficiency: 88, baseline: 80 },
+    { time: '2h', coordination: 93, efficiency: 89, baseline: 80 },
+    { time: '3h', coordination: 95, efficiency: 91, baseline: 80 },
+    { time: '4h', coordination: 96, efficiency: 92, baseline: 80 }
+  ]);
+
+  const NetworkOverview = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Agent Network Overview</CardTitle>
+          <Button variant="outline" className="flex items-center gap-2">
+            <RefreshCcw className="w-4 h-4" />
+            Sync Network
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Network className="w-5 h-5 text-blue-500" />
+                  <span className="font-semibold">Network Health</span>
+                </div>
+                <span className="text-2xl font-bold">{agentMetrics.networkHealth}%</span>
+              </div>
+              <div className="w-full h-2 bg-blue-100 rounded-full">
+                <div
+                  className="h-full bg-blue-500 rounded-full"
+                  style={{ width: `${agentMetrics.networkHealth}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <GitBranch className="w-5 h-5 text-green-500" />
+                  <span className="font-semibold">Agent Synchronization</span>
+                </div>
+                <span className="text-2xl font-bold">{agentMetrics.agentSync}%</span>
+              </div>
+              <div className="w-full h-2 bg-green-100 rounded-full">
+                <div
+                  className="h-full bg-green-500 rounded-full"
+                  style={{ width: `${agentMetrics.agentSync}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-purple-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-purple-500" />
+                  <span className="font-semibold">Collective Decisions</span>
+                </div>
+                <span className="text-2xl font-bold">{agentMetrics.decisions}</span>
+              </div>
+              <div className="flex justify-between text-sm mt-2">
+                <span>Last hour: 12</span>
+                <span className="text-green-600">+8%</span>
+              </div>
+            </div>
+
+            <div className="p-4 bg-orange-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-orange-500" />
+                  <span className="font-semibold">Decision Accuracy</span>
+                </div>
+                <span className="text-2xl font-bold">{agentMetrics.accuracy}%</span>
+              </div>
+              <div className="flex justify-between text-sm mt-2">
+                <span>Confidence: High</span>
+                <span className="text-green-600">+2.3%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const NetworkPerformance = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Network Performance</CardTitle>
+      </CardHeader>
+      <CardContent className="h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={networkHistory}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis domain={[0, 100]} />
+            <Tooltip />
+            <Legend />
+            <Line 
+              type="monotone" 
+              dataKey="coordination" 
+              stroke="#2563eb" 
+              name="Coordination"
+              strokeWidth={2}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="efficiency" 
+              stroke="#16a34a" 
+              name="Efficiency"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="baseline" 
+              stroke="#94a3b8" 
+              name="Baseline"
+              strokeDasharray="5 5"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  const AgentStatus = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Agent Status & Activity</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-4">
+          {Object.entries(agentActivity).map(([agent, data]) => (
+            <div key={agent} className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  {agent === 'pricing' && <Zap className="w-5 h-5 text-blue-500" />}
+                  {agent === 'quality' && <Shield className="w-5 h-5 text-green-500" />}
+                  {agent === 'matching' && <GitBranch className="w-5 h-5 text-purple-500" />}
+                  {agent === 'risk' && <AlertCircle className="w-5 h-5 text-orange-500" />}
+                  <span className="font-semibold capitalize">{agent} Agent</span>
+                </div>
+                <div className={`px-2 py-1 rounded-full text-sm ${
+                  data.status === 'active' 
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {data.status}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Confidence</span>
+                  <span className="font-medium">{data.confidence}%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Actions</span>
+                  <div className="flex items-center gap-1">
+                    <ArrowUpRight className="w-4 h-4 text-green-500" />
+                    <span>{data.actions}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">AI Agent Network</h1>
+        <p className="text-gray-600">Multi-agent system coordination and optimization</p>
+      </div>
+
+      <NetworkOverview />
+      <div className="grid grid-cols-2 gap-6">
+        <NetworkPerformance />
+        <AgentStatus />
+      </div>
+    </div>
+  );
+};
+
+export default AgentInterface;
