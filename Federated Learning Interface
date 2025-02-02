@@ -1,0 +1,244 @@
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { 
+  Network, 
+  Shield,
+  Database,
+  Cpu,
+  Activity,
+  Lock,
+  Share2,
+  Coins,
+  ArrowUpRight,
+  BarChart2
+} from 'lucide-react';
+
+const FederatedInterface = () => {
+  const [federatedMetrics] = useState({
+    activeNodes: 156,
+    modelAccuracy: 94.5,
+    privacyScore: 98,
+    totalRewards: 25840
+  });
+
+  const [trainingProgress] = useState([
+    { round: 1, accuracy: 85, nodes: 120, rewards: 15000 },
+    { round: 2, accuracy: 88, nodes: 135, rewards: 18000 },
+    { round: 3, accuracy: 91, nodes: 142, rewards: 21000 },
+    { round: 4, accuracy: 94, nodes: 156, rewards: 25840 }
+  ]);
+
+  const [activeContributors] = useState([
+    {
+      id: 'node-1',
+      type: 'enterprise',
+      dataQuality: 96,
+      contribution: 1280,
+      rewards: 4500
+    },
+    {
+      id: 'node-2',
+      type: 'research',
+      dataQuality: 93,
+      contribution: 960,
+      rewards: 3200
+    }
+  ]);
+
+  const FederationOverview = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Federation Overview</CardTitle>
+          <Button variant="outline" className="flex items-center gap-2">
+            <Network className="w-4 h-4" />
+            View Network
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Cpu className="w-5 h-5 text-blue-500" />
+                  <span className="font-semibold">Active Nodes</span>
+                </div>
+                <span className="text-2xl font-bold">{federatedMetrics.activeNodes}</span>
+              </div>
+              <div className="flex justify-between text-sm mt-2">
+                <span>Optimal: 150</span>
+                <span className="text-green-600">+4% efficiency</span>
+              </div>
+            </div>
+
+            <div className="p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-green-500" />
+                  <span className="font-semibold">Model Accuracy</span>
+                </div>
+                <span className="text-2xl font-bold">{federatedMetrics.modelAccuracy}%</span>
+              </div>
+              <div className="w-full h-2 bg-green-100 rounded-full">
+                <div
+                  className="h-full bg-green-500 rounded-full"
+                  style={{ width: `${federatedMetrics.modelAccuracy}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-purple-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-purple-500" />
+                  <span className="font-semibold">Privacy Score</span>
+                </div>
+                <span className="text-2xl font-bold">{federatedMetrics.privacyScore}%</span>
+              </div>
+              <div className="w-full h-2 bg-purple-100 rounded-full">
+                <div
+                  className="h-full bg-purple-500 rounded-full"
+                  style={{ width: `${federatedMetrics.privacyScore}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="p-4 bg-orange-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Coins className="w-5 h-5 text-orange-500" />
+                  <span className="font-semibold">Total Rewards</span>
+                </div>
+                <span className="text-2xl font-bold">{federatedMetrics.totalRewards}</span>
+              </div>
+              <div className="flex justify-between text-sm mt-2">
+                <span>Last round: +4,840</span>
+                <span className="text-green-600">+18%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const TrainingProgress = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Training Progress</CardTitle>
+      </CardHeader>
+      <CardContent className="h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={trainingProgress}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="round" />
+            <YAxis yAxisId="left" />
+            <YAxis yAxisId="right" orientation="right" />
+            <Tooltip />
+            <Legend />
+            <Line 
+              yAxisId="left"
+              type="monotone" 
+              dataKey="accuracy" 
+              stroke="#2563eb" 
+              name="Model Accuracy"
+              strokeWidth={2}
+            />
+            <Line 
+              yAxisId="left"
+              type="monotone" 
+              dataKey="nodes" 
+              stroke="#16a34a" 
+              name="Active Nodes"
+            />
+            <Line 
+              yAxisId="right"
+              type="monotone" 
+              dataKey="rewards" 
+              stroke="#9333ea" 
+              name="Rewards Distributed"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  const Contributors = () => (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Top Contributors</CardTitle>
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <Share2 className="w-4 h-4" />
+            View All
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {activeContributors.map(contributor => (
+            <div key={contributor.id} className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Database className="w-5 h-5 text-blue-500" />
+                  <span className="font-semibold capitalize">{contributor.type} Node</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-green-500" />
+                  <span className="text-sm text-gray-600">Privacy Verified</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Data Quality</p>
+                  <div className="flex items-center gap-2">
+                    <BarChart2 className="w-4 h-4 text-purple-500" />
+                    <span className="font-bold">{contributor.dataQuality}%</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Contribution</p>
+                  <div className="flex items-center gap-2">
+                    <Database className="w-4 h-4 text-blue-500" />
+                    <span className="font-bold">{contributor.contribution}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Rewards</p>
+                  <div className="flex items-center gap-2">
+                    <Coins className="w-4 h-4 text-orange-500" />
+                    <span className="font-bold">{contributor.rewards}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Federated Learning Network</h1>
+        <p className="text-gray-600">Privacy-preserving distributed model training</p>
+      </div>
+
+      <FederationOverview />
+      <div className="grid grid-cols-2 gap-6">
+        <TrainingProgress />
+        <Contributors />
+      </div>
+    </div>
+  );
+};
+
+export default FederatedInterface;
